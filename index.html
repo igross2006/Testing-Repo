@@ -49,7 +49,8 @@
   #stage.env-phone  { background: linear-gradient(180deg,#20194a 0%,#3a2c66 48%,#241f3a 100%); }
   #stage.env-meadow { background: url(assets/bg/meadow-sunny.webp) center / cover no-repeat,
                                   linear-gradient(180deg,#8fd0ff 0%,#c8ecff 40%,#e8f9ff 52%,#a8dd8e 52%,#8fce77 100%); }
-  #stage.env-grove  { background: linear-gradient(180deg,#131033 0%,#282052 46%,#3a2c66 56%,#1f3a2d 56%,#14281d 100%); }
+  #stage.env-grove  { background: url(assets/bg/grove.webp) center / cover no-repeat,
+                                  linear-gradient(180deg,#131033 0%,#282052 46%,#3a2c66 56%,#1f3a2d 56%,#14281d 100%); }
   #stage.env-cove   { background: url(assets/bg/cove-sunny.webp) center / cover no-repeat,
                                   linear-gradient(180deg,#6ecbe8 0%,#aee6f2 38%,#d8f4f6 50%,#7fd8e8 50%,#a9e6ef 62%,#f6e3b0 62%,#eed49a 100%); }
   #stage.env-cavern { background: url(assets/bg/cavern.webp) center / cover no-repeat,
@@ -1226,21 +1227,12 @@ function scenery(env) {
         <div class="deco cloud ${cloudMod}" style="top:20%; animation-duration:64s; animation-delay:-30s; transform:scale(.7); opacity:.8"></div>`;
     }
   } else if (env === 'grove') {
+    // painted night forest — animated moon, shooting stars, and fireflies on top
     out = `<div class="deco moon"><i style="top:12px;left:14px;width:11px;height:11px"></i><i style="top:30px;left:30px;width:7px;height:7px"></i><i style="top:16px;left:36px;width:5px;height:5px"></i></div>
       <div class="deco meteor"></div>
       <div class="deco meteor" style="left:55%; top:4%; animation-delay:4.5s"></div>`;
-    for (let i = 0; i < 16; i++)
-      out += `<div class="deco star" style="top:${3 + Math.random() * 40}%; left:${Math.random() * 94}%;
-              width:${2 + Math.random() * 2.5}px; height:${2 + Math.random() * 2.5}px; animation-delay:${Math.random() * 3}s"></div>`;
-    out += pos(fluffyTree(1.15, true), 'bottom:30%; left:-2%;');
-    out += pos(fluffyTree(.8, true), 'bottom:33%; left:14%; opacity:.8;');
-    out += pos(fluffyTree(1, true), 'bottom:31%; right:-1%;');
-    out += pos(fluffyTree(.6, true), 'bottom:35%; right:15%; opacity:.7;');
-    [8, 26, 70, 90].forEach((x, i) =>
-      { out += pos(`<span class="shroomGlow" style="display:inline-block">${glowShroom()}</span>`, `bottom:${4 + (i % 2) * 10}%; left:${x}%;`); });
     [[62,'18%',0],[72,'70%',2],[58,'44%',4],[80,'30%',1],[66,'85%',3]].forEach(([t, l, d]) =>
       { out += `<div class="deco firefly" style="top:${t}%; left:${l}; animation-duration:${6 + d}s; animation-delay:${d}s"></div>`; });
-    out += `<div class="deco fog" style="bottom:24%"></div><div class="deco fog" style="bottom:10%; animation-delay:-7s; opacity:.09"></div>`;
   } else if (env === 'cove') {
     if (!gloom && !snowy) {
       // painted beach — living touches only
