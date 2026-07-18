@@ -23,15 +23,15 @@
 
   /* ---------- header ---------- */
   header {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px 6px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 10px 12px 6px;
     padding-top: max(10px, env(safe-area-inset-top));
   }
-  header .title { font-weight: 800; letter-spacing: .03em; font-size: 1.05rem; }
+  header .title { font-weight: 800; letter-spacing: .03em; font-size: 1.02rem; }
   header .spacer { flex: 1; }
   .chip {
     background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.09); color: #ffd9a0;
-    border-radius: 999px; padding: 6px 12px; font-size: .9rem; font-weight: 700;
+    border-radius: 999px; padding: 6px 10px; font-size: .88rem; font-weight: 700;
     font-family: inherit;
   }
   button.chip:active { transform: scale(.94); }
@@ -45,10 +45,14 @@
   }
   #scenery { position: absolute; inset: 0; pointer-events: none; }
   #scenery svg { display: block; }
+  #wx { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
   #stage.env-phone  { background: linear-gradient(180deg,#20194a 0%,#3a2c66 48%,#241f3a 100%); }
   #stage.env-meadow { background: linear-gradient(180deg,#8fd0ff 0%,#c8ecff 40%,#e8f9ff 52%,#a8dd8e 52%,#8fce77 100%); }
   #stage.env-grove  { background: linear-gradient(180deg,#131033 0%,#282052 46%,#3a2c66 56%,#1f3a2d 56%,#14281d 100%); }
   #stage.env-cove   { background: linear-gradient(180deg,#6ecbe8 0%,#aee6f2 38%,#d8f4f6 50%,#7fd8e8 50%,#a9e6ef 62%,#f6e3b0 62%,#eed49a 100%); }
+  #stage.env-cavern { background: linear-gradient(180deg,#1c1433 0%,#2e2050 44%,#3d2a63 56%,#241a3e 56%,#180f2c 100%); }
+  #stage.env-hollow { background: linear-gradient(180deg,#2a3a2c 0%,#41573f 46%,#5a7350 56%,#3a4d33 56%,#2c3b27 100%); }
+  #stage.env-ember  { background: linear-gradient(180deg,#3a2030 0%,#5c2e3a 42%,#8a4a44 56%,#4d3238 56%,#3a252c 100%); }
   #stage.night::after {
     content:''; position: absolute; inset: 0;
     background: rgba(20,16,50,.32); pointer-events: none; z-index: 4;
@@ -56,7 +60,6 @@
 
   .deco { position: absolute; }
 
-  /* sun & moon */
   .sun { top: 6%; right: 8%; width: 64px; height: 64px; }
   .sun .core {
     position:absolute; inset: 6px; border-radius: 50%;
@@ -75,7 +78,6 @@
           box-shadow: 0 0 46px #cfc4e899; }
   .moon i { position:absolute; border-radius:50%; background:#bdb0dd; opacity:.5; }
 
-  /* clouds */
   .cloud { height: 24px; width: 78px; border-radius: 999px; background: #ffffffe0;
            animation: drift linear infinite; }
   .cloud::before, .cloud::after {
@@ -85,7 +87,6 @@
   .cloud::after  { top:-9px;  left:40px; width:24px; height:24px; }
   @keyframes drift { from { transform: translateX(-130px); } to { transform: translateX(110vw); } }
 
-  /* stars / meteor / fireflies / fog */
   .star { border-radius: 50%; background: #fff; animation: twinkle 3s ease-in-out infinite; }
   @keyframes twinkle { 0%,100% { opacity:.2; } 50% { opacity:.95; } }
   .meteor {
@@ -112,14 +113,12 @@
     animation: fogDrift 14s ease-in-out infinite alternate; }
   @keyframes fogDrift { from { transform: translateX(-16px); } to { transform: translateX(26px); } }
 
-  /* waves */
   .wave { left:-50%; width:200%; height:26px;
     background: radial-gradient(circle at 20px -6px, transparent 13px, var(--wc) 14px);
     background-size: 40px 26px; background-repeat: repeat-x;
     animation: lap ease-in-out infinite alternate; }
   @keyframes lap { from { transform: translateX(0); } to { transform: translateX(40px); } }
 
-  /* generic sways & bobs for scenery svgs */
   .sway { animation: sway 4s ease-in-out infinite alternate; transform-origin: bottom center; }
   @keyframes sway { from { transform: rotate(-3deg); } to { transform: rotate(3.5deg); } }
   .bobber { animation: boatBob 4.5s ease-in-out infinite alternate; }
@@ -142,8 +141,32 @@
     54% { transform: translateX(46vw) scaleX(-1); } 100% { transform: translateX(-70px) scaleX(-1); }
   }
   .shroomGlow { filter: drop-shadow(0 0 6px #9fe8c8); }
+  .crystalGlow { filter: drop-shadow(0 0 8px #b48ae8); animation: crystalPulse 3s ease-in-out infinite alternate; }
+  @keyframes crystalPulse { from { filter: drop-shadow(0 0 5px #b48ae8); } to { filter: drop-shadow(0 0 13px #cfa8ff); } }
+  .spore { width: 5px; height: 5px; border-radius: 50%; background: #d8e8a8; opacity:.7;
+    animation: sporeFloat linear infinite; }
+  @keyframes sporeFloat { to { transform: translateY(-90px) translateX(24px); opacity: 0; } }
+  .steam { width: 30px; height: 44px; border-radius: 50%; background: #fff; opacity: .13; filter: blur(7px);
+    animation: steamUp ease-in infinite; }
+  @keyframes steamUp { to { transform: translateY(-110px) scale(1.5); opacity: 0; } }
   .vig { position: absolute; inset: 0; pointer-events: none;
          box-shadow: inset 0 -46px 60px -34px rgba(0,0,0,.28), inset 0 34px 54px -34px rgba(255,255,255,.07); }
+
+  /* ---------- weather layers ---------- */
+  .drop { position:absolute; top:-24px; width:2px; height:15px; border-radius:2px;
+    background: linear-gradient(#ffffff00,#bfe4ff); animation: fall linear infinite; }
+  @keyframes fall { to { transform: translateY(620px); } }
+  .flake { position:absolute; top:-14px; border-radius:50%; background:#fff; opacity:.92;
+    animation: snowfall linear infinite; }
+  @keyframes snowfall { to { transform: translateY(620px) translateX(34px); } }
+  .wxDim { position:absolute; inset:0; background: rgba(70,80,110,.22); }
+  .wxFlash { position:absolute; inset:0; background:#fff; opacity:0; animation: flash 7s linear infinite; }
+  .wxFlash.f2 { animation-delay: 3.4s; animation-duration: 9s; }
+  @keyframes flash { 0%,93%,97%,100% { opacity:0; } 94%,96% { opacity:.55; } 95% { opacity:.15; } }
+  .heatShimmer { position:absolute; inset:0; background: radial-gradient(ellipse at 50% 15%, #ffb37a22, transparent 60%); }
+
+  /* ---------- campfire ---------- */
+  .campfire { filter: drop-shadow(0 0 12px #ff9a4d88); }
 
   /* ---------- phone playground ---------- */
   .pStatus {
@@ -175,25 +198,16 @@
     position: absolute; left: 4%; right: 4%; bottom: 2%; height: 16%;
     border-radius: 22px; background: rgba(255,255,255,.1);
   }
-  .petCard.lunge .creature { animation: lunge .6s ease-out; }
-  @keyframes lunge {
-    30% { transform: translateY(-48px) scale(1.05,.95) rotate(-4deg); }
-    60% { transform: translateY(0) scale(.95,1.06); }
+  .paw { position:absolute; font-size:.85rem; opacity:.5; pointer-events:none;
+    animation: pawFade 3s linear forwards; }
+  @keyframes pawFade { to { opacity: 0; } }
+  #notif {
+    position: absolute; top: -60px; left: 8%; right: 8%; z-index: 8;
+    background: rgba(20,18,40,.92); border: 1px solid rgba(255,255,255,.14);
+    border-radius: 14px; padding: 9px 14px; font-size: .8rem;
+    transition: top .35s ease-out; pointer-events: none;
   }
-  .petCard.squish .creature { animation: squishA .35s ease-out; }
-  @keyframes squishA { 40% { transform: scale(1.09,.89) translateY(3px); } }
-
-  /* ---------- speech bubble ---------- */
-  #bubble {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    max-width: 84%; z-index: 6;
-    background: #fffdf6; color: #46395a;
-    border-radius: 16px; padding: 9px 14px;
-    font-size: .86rem; line-height: 1.35; text-align: center;
-    box-shadow: 0 4px 14px rgba(0,0,0,.25);
-    opacity: 0; transition: opacity .4s; pointer-events: none;
-  }
-  #bubble.show { opacity: 1; }
+  #notif.show { top: 10px; }
 
   /* ---------- pets (wandering) ---------- */
   #pets { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
@@ -203,7 +217,6 @@
     transition: width .3s;
     pointer-events: auto;
   }
-  .eggCard { pointer-events: auto; }
   .petCard.active { width: min(46vw, 205px); z-index: 5; }
   .petCard:not(.active) { width: min(27vw, 118px); opacity: .95; z-index: 3; }
   .flipWrap { display: block; transition: transform .25s; }
@@ -211,6 +224,11 @@
   .petCard .creature { animation: bob 3.2s ease-in-out infinite; }
   .petCard.walking .creature { animation: trot .45s ease-in-out infinite; }
   .petCard.asleep .creature { animation-duration: 5.5s; }
+  .petCard.sp-wisp .creature { animation-name: hoverFloat; animation-duration: 3.6s; }
+  @keyframes hoverFloat {
+    0%,100% { transform: translateY(0) rotate(-1.5deg); }
+    50%     { transform: translateY(-14px) rotate(1.5deg); }
+  }
   .petName {
     display: inline-block; margin-top: 2px; font-size: .78rem; font-weight: 700;
     background: rgba(0,0,0,.28); border-radius: 999px; padding: 3px 10px;
@@ -224,7 +242,6 @@
     50%     { transform: translateY(-9px) scale(.99,1.02); }
   }
 
-  /* creature part animations */
   .eye { transform-origin: center; transform-box: fill-box; animation: blink 4.4s infinite; }
   @keyframes blink { 0%,93%,100% { transform: scaleY(1); } 95%,97% { transform: scaleY(.06); } }
   .tailWag { transform-box: fill-box; transform-origin: left center; animation: wag 3.2s ease-in-out infinite; }
@@ -260,17 +277,45 @@
     15% { opacity: .8; }
     100% { opacity: 0; transform: translate(6px,-60px) scale(1.1); }
   }
+  .hornGlow { animation: hornPulse 2.6s ease-in-out infinite alternate; transform-box: fill-box; }
+  @keyframes hornPulse { from { opacity: .55; } to { opacity: 1; } }
 
   .eggCard { position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%);
-             width: min(30vw, 130px); text-align: center; z-index: 6; }
+             width: min(30vw, 130px); text-align: center; z-index: 6; pointer-events: auto; }
   .eggCard svg { width: 100%; }
   .eggCard.wob svg { animation: wobble .4s; }
   @keyframes wobble { 25% { transform: rotate(-9deg); } 75% { transform: rotate(9deg); } }
+  .petCard.lunge .creature { animation: lunge .6s ease-out; }
+  @keyframes lunge {
+    30% { transform: translateY(-48px) scale(1.05,.95) rotate(-4deg); }
+    60% { transform: translateY(0) scale(.95,1.06); }
+  }
+  .petCard.squish .creature { animation: squishA .35s ease-out; }
+  @keyframes squishA { 40% { transform: scale(1.09,.89) translateY(3px); } }
+
+  /* ---------- hatch cinematic ---------- */
+  #hatchFx { position:absolute; inset:0; z-index:10; display:none; align-items:center;
+    justify-content:center; flex-direction:column; gap:10px; pointer-events:none; }
+  #hatchFx.on { display:flex; }
+  #hatchFx .flashW { position:absolute; inset:0; background:#fff; opacity:0; }
+  #hatchFx.on .flashW { animation: hatchFlash 1s ease-out forwards; }
+  @keyframes hatchFlash { 0% { opacity:.95; } 100% { opacity:0; } }
+  #hatchFx .sil { width:min(50vw,220px); animation: silGrow 1.4s ease-out forwards; }
+  @keyframes silGrow { from { transform: scale(.4); } to { transform: scale(1); } }
+  #hatchFx .sil svg { width:100%; height:auto; }
+  #hatchFx .sil.dark svg { filter: brightness(0) opacity(.85); }
+  #hatchFx .banner { background:#fffdf6; color:#46395a; border-radius:999px; padding:8px 18px;
+    font-weight:800; opacity:0; }
+  #hatchFx.reveal .banner { animation: bannerIn .4s ease-out forwards; }
+  @keyframes bannerIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; } }
 
   /* ---------- particles / pickups ---------- */
   #fx { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
   .float { position: absolute; font-size: 1.25rem; animation: floatUp 1.2s ease-out forwards; }
   @keyframes floatUp { to { transform: translateY(-70px); opacity: 0; } }
+  .breath { position:absolute; width:10px; height:10px; border-radius:50%; background:#fff;
+    opacity:.55; filter: blur(2px); animation: breathOut 1.6s ease-out forwards; pointer-events:none; }
+  @keyframes breathOut { to { transform: translate(14px,-22px) scale(2.1); opacity:0; } }
   .pickup {
     position: absolute; z-index: 6; border: none; background: none;
     font-size: 1.6rem; animation: hover 1.6s ease-in-out infinite alternate;
@@ -312,21 +357,34 @@
     background: #322b4d; border-radius: 24px 24px 0 0;
     width: 100%; max-width: 480px; padding: 18px 18px 26px;
     padding-bottom: max(26px, env(safe-area-inset-bottom));
+    max-height: 72dvh; overflow-y: auto;
   }
   #modalBox h2 { margin: 0 0 12px; font-size: 1.05rem; }
-  .envCard {
+  .rowCard {
     display: flex; align-items: center; gap: 12px; width: 100%;
     border: 2px solid transparent; border-radius: 16px; padding: 10px;
     background: rgba(255,255,255,.07); color: inherit; font-family: inherit;
-    margin-bottom: 10px; text-align: left;
+    margin-bottom: 10px; text-align: left; font-size: .95rem;
   }
-  .envCard.sel { border-color: #ffd9a0; }
-  .envCard .preview { width: 64px; height: 44px; border-radius: 10px; flex: none; }
-  .envCard .nm { font-weight: 700; }
-  .envCard .st { font-size: .78rem; opacity: .8; }
+  .rowCard.sel { border-color: #ffd9a0; }
+  .rowCard .preview { width: 64px; height: 44px; border-radius: 10px; flex: none;
+    display:flex; align-items:center; justify-content:center; font-size:1.5rem;
+    background: rgba(255,255,255,.08); }
+  .rowCard .nm { font-weight: 700; }
+  .rowCard .st { font-size: .78rem; opacity: .8; }
   .pv-meadow { background: linear-gradient(180deg,#9fd8ff 55%,#8fce77 55%); }
   .pv-grove  { background: linear-gradient(180deg,#221c44 56%,#1f3a2d 56%); }
   .pv-cove   { background: linear-gradient(180deg,#7fd8e8 54%,#eed49a 54%); }
+  .pv-cavern { background: linear-gradient(180deg,#2e2050 56%,#180f2c 56%); }
+  .pv-hollow { background: linear-gradient(180deg,#41573f 56%,#2c3b27 56%); }
+  .pv-ember  { background: linear-gradient(180deg,#5c2e3a 56%,#3a252c 56%); }
+  .albGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .albCard { background: rgba(255,255,255,.07); border-radius: 16px; padding: 8px 4px;
+    text-align: center; font-size: .74rem; }
+  .albCard svg { width: 74%; height: auto; }
+  .albCard.unknown svg { filter: brightness(0) opacity(.45); }
+  .albCard .an { font-weight: 700; }
+  .albCard .ak { opacity: .85; }
 
   #toast {
     position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%);
@@ -336,6 +394,18 @@
     opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap;
   }
   #toast.show { opacity: 1; }
+
+  /* ---------- speech bubble ---------- */
+  #bubble {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    max-width: 84%; z-index: 6;
+    background: #fffdf6; color: #46395a;
+    border-radius: 16px; padding: 9px 14px;
+    font-size: .86rem; line-height: 1.35; text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    opacity: 0; transition: opacity .4s; pointer-events: none;
+  }
+  #bubble.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -343,9 +413,12 @@
 <header>
   <span class="title">🐉 Mythlings</span>
   <span class="spacer"></span>
-  <button class="chip" id="btnEgg" hidden>🥚 50✨</button>
+  <button class="chip" id="btnEgg" hidden>🥚</button>
+  <button class="chip" id="btnAlbum">📖</button>
   <button class="chip" id="btnPhone">📱</button>
   <button class="chip" id="btnEnv">🏞️</button>
+  <button class="chip" id="btnWx">🌦️</button>
+  <button class="chip" id="btnSound">🔊</button>
   <span class="chip">✨ <span id="giggles">0</span></span>
 </header>
 
@@ -357,9 +430,12 @@
 
 <div id="stage" class="env-meadow">
   <div id="scenery"></div>
+  <div id="wx"></div>
   <div id="bubble"></div>
   <div id="pets"></div>
   <div id="fx"></div>
+  <div id="notif"></div>
+  <div id="hatchFx"><div class="flashW"></div><div class="sil dark"></div><div class="banner"></div></div>
 </div>
 
 <div id="actions">
@@ -367,13 +443,7 @@
   <button class="act" id="btnSleep">🌙 Sleep</button>
 </div>
 
-<div id="modal">
-  <div id="modalBox">
-    <h2>Choose a home 🏞️</h2>
-    <div id="envList"></div>
-  </div>
-</div>
-
+<div id="modal"><div id="modalBox"></div></div>
 <div id="toast"></div>
 
 <script>
@@ -383,79 +453,179 @@ const rnd = a => a[Math.floor(Math.random() * a.length)];
 const clamp = v => Math.max(0, Math.min(100, v));
 const buzz = ms => navigator.vibrate && navigator.vibrate(ms);
 
-/* ============================== data ============================== */
+/* ============================== species ============================== */
 
 const SPECIES = {
   dragon: {
-    name: 'Sprout', flavor: 'baby dragon',
+    name: 'Sprout', flavor: 'baby dragon', rare: false,
     lines: {
       hungry: ["Sprout has composed a ballad about his empty tummy. It has four verses.",
                "Sprout flops over dramatically. “No snacks… no strength…”"],
       tired:  ["Sprout's little wings are drooping… nap o'clock?"],
       sad:    ["Sprout hoarded three bottle caps to cheer himself up. It isn't working."],
       idle:   ["Sprout sneezed a tiny smoke ring! ✨",
-               "Sprout is proudly guarding his hoard: one (1) shiny button."]
+               "Sprout is proudly guarding his hoard: one (1) shiny button."],
+      cold:   ["Sprout's smoke rings are coming out frosty!"],
+      hot:    ["Sprout claims dragons don't overheat. Sprout is visibly melting."]
     }
   },
   phoenix: {
-    name: 'Cinder', flavor: 'pocket phoenix',
+    name: 'Cinder', flavor: 'pocket phoenix', rare: false,
     lines: {
       hungry: ["Cinder threatens to dramatically combust. She will not. She's just hungry.",
                "Cinder stares at the snack button. Pointedly."],
       tired:  ["Cinder's flame is down to birthday-candle size… bedtime?"],
       sad:    ["Cinder puffed into her egg out of embarrassment. Coax her back?"],
       idle:   ["Cinder is glowing extra warm today! 🔥",
-               "Cinder rearranged her fluff. Please notice."]
+               "Cinder rearranged her fluff. Please notice."],
+      cold:   ["Cinder has become the group's personal space heater. She's thriving."],
+      hot:    ["Cinder says THIS is her weather. Finally."]
     }
   },
   kraken: {
-    name: 'Inky', flavor: 'bathtub kraken',
+    name: 'Inky', flavor: 'bathtub kraken', rare: false,
     lines: {
       hungry: ["Inky wrote “feed me” in ink. Politely. With a heart.",
                "Inky is gnawing on a tentacle. His own. For flavor reasons."],
       tired:  ["Inky's tentacles are doing the sleepy-noodle thing."],
       sad:    ["Inky says it's fine. Tentacles don't NEED hugs. (They do.)"],
       idle:   ["Inky gave you a four-arm hug!! 💜",
-               "Inky found a fork for the collection."]
+               "Inky found a fork for the collection."],
+      cold:   ["Inky is wearing his scarf on ALL the tentacles at once. Somehow."],
+      hot:    ["Inky demands a bigger puddle. For health reasons."]
+    }
+  },
+  unicorn: {
+    name: 'Fern', flavor: 'moss unicorn', rare: true,
+    lines: {
+      hungry: ["Fern nibbled the scenery. The scenery did not approve.",
+               "Fern's horn dims when snackless. Science."],
+      tired:  ["Fern is standing up but the eyes are 100% asleep."],
+      sad:    ["A tiny rain cloud is following Fern around. Metaphorically. Mostly."],
+      idle:   ["Flowers bloomed where Fern was napping! 🌸",
+               "Fern's horn is extra sparkly today."],
+      cold:   ["Fern grew a winter moss coat. Fashion AND function."],
+      hot:    ["Fern found the one shady spot and is not sharing."]
+    }
+  },
+  pegasus: {
+    name: 'Puff', flavor: 'cloud pegasus', rare: true,
+    lines: {
+      hungry: ["Puff is eating a cloud. It is not filling.",
+               "Puff's tummy rumbled and it sounded like distant thunder."],
+      tired:  ["Puff made a cloud pillow. Committing to the nap."],
+      sad:    ["Puff is raining. Just a little. Just emotionally."],
+      idle:   ["Puff did a loop-de-loop! Nobody saw. Do praise anyway.",
+               "Puff is floating two inches higher than usual. Confidence."],
+      cold:   ["Puff's breath made a tiny cloud friend!"],
+      hot:    ["Puff evaporated a little. Puff is fine. Probably."]
+    }
+  },
+  wisp: {
+    name: 'Glim', flavor: "will-o'-wisp", rare: true,
+    lines: {
+      hungry: ["Glim's glow is flickering like a dying flashlight. Feed the orb.",
+               "Glim dimmed to 40% brightness in protest."],
+      tired:  ["Glim is doing the slow-blink. Orb bedtime."],
+      sad:    ["Glim is hiding behind the nearest object. You know the one."],
+      idle:   ["Glim is orbiting you affectionately! ✨",
+               "Glim learned a new color today. It's the same color, but brighter."],
+      cold:   ["Glim has become the world's smallest campfire. Gather round."],
+      hot:    ["Glim insists the heat is 'basically a hug'."]
     }
   }
 };
+
+const KEEPSAKE = {
+  dragon: ['🪙','shiny scale'], phoenix: ['🪶','ember feather'], kraken: ['🍴','collected fork'],
+  unicorn: ['🌸','moss blossom'], pegasus: ['☁️','cloud tuft'], wisp: ['⭐','stray spark']
+};
+const AFFINITY = { dragon:'meadow', phoenix:'ember', kraken:'cove',
+                   unicorn:'hollow', pegasus:'meadow', wisp:'cavern' };
+const FORM_BADGE = { chonky:'🍩', zoomy:'⚡', moody:'🌧️', sunny:'🌟' };
+const FORM_NAME  = { chonky:'chonky', zoomy:'zoomies', moody:'moody poet', sunny:'sunshine' };
 
 const CUDDLES = [
   "{a} and {b} made a cuddle pile! 💞",
   "{a} is using {b} as a pillow. {b} allows it.",
   "{a} and {b} are telling each other secrets!"
 ];
+const JEALOUS = [
+  "{b} turned their back with a tiny 'hmph' cloud. Someone's feeling left out…",
+  "{b} is pointedly NOT looking at all the petting {a} is getting."
+];
 
 const ENVS = {
-  meadow: { name: 'Cloud Meadow',   cost: 0,   emoji: '🌤️' },
-  grove:  { name: 'Starfall Grove', cost: 100, emoji: '🌙' },
-  cove:   { name: 'Tidepool Cove',  cost: 100, emoji: '🌊' }
+  meadow: { name: 'Cloud Meadow',    cost: 0,   emoji: '🌤️' },
+  grove:  { name: 'Starfall Grove',  cost: 100, emoji: '🌙' },
+  cove:   { name: 'Tidepool Cove',   cost: 100, emoji: '🌊' },
+  cavern: { name: 'Crystal Cavern',  cost: 150, emoji: '💎' },
+  hollow: { name: 'Mushroom Hollow', cost: 150, emoji: '🍄' },
+  ember:  { name: 'Ember Hot Spring',cost: 150, emoji: '♨️' }
 };
 
-const EGG_COST = 50, MAX_PETS = 3, EGG_TAPS = 6;
+const EGG_COST = 50, RARE_EGG_COST = 100, RARE_KEEPSAKES = 2, MAX_PETS = 3, EGG_TAPS = 6;
 
 /* ============================ state ============================ */
 
 function freshState() {
   return { giggles: 20, pets: [], active: 0, env: 'meadow', mode: 'home',
-           unlocked: ['meadow'], egg: { taps: 0 }, last: Date.now(), greeted: false };
+           unlocked: ['meadow'], egg: { taps: 0, rare: false }, album: [],
+           keepsakes: {}, sound: true, wxMode: 'auto', streak: 0, lastDay: '',
+           last: Date.now(), greeted: false };
 }
 let S;
 try { S = JSON.parse(localStorage.getItem('mythlings')); } catch (e) {}
 if (!S || !Array.isArray(S.pets)) S = freshState();
+// migrations
 if (!S.mode) S.mode = 'home';
-S.pets.forEach((p, i) => {                  // migrate saves from before wandering
+if (!S.album) S.album = S.pets.map(p => p.sp);
+if (!S.keepsakes) S.keepsakes = {};
+if (S.sound == null) S.sound = true;
+if (!S.wxMode) S.wxMode = 'auto';
+if (S.streak == null) { S.streak = 0; S.lastDay = ''; }
+S.pets.forEach((p, i) => {
   if (p.x == null) { p.x = 25 + i * 25; p.tx = p.x; p.dir = 1; }
+  if (p.fed == null) { p.fed = 0; p.petted = 0; p.xp = 0; }
 });
 
 function save() { S.last = Date.now(); localStorage.setItem('mythlings', JSON.stringify(S)); }
+const totalKeepsakes = () => Object.values(S.keepsakes).reduce((a, b) => a + b, 0);
+const petName = p => p.name || SPECIES[p.sp].name;
+
+/* ====================== sound (tiny synth) ====================== */
+
+let AC = null;
+function ac() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  if (AC && AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function tone(freq, dur, type, vol, delay) {
+  if (!S.sound) return;
+  const c = ac(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type || 'sine'; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol || .08, c.currentTime + (delay || 0));
+  g.gain.exponentialRampToValueAtTime(.0001, c.currentTime + (delay || 0) + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(c.currentTime + (delay || 0)); o.stop(c.currentTime + (delay || 0) + dur + .05);
+}
+const sChirp   = () => { tone(720, .09, 'sine', .06); tone(980, .1, 'sine', .05, .07); };
+const sPop     = () => tone(1200, .07, 'triangle', .09);
+const sCrunch  = () => { tone(180, .08, 'sawtooth', .1); tone(120, .1, 'square', .07, .05); };
+const sDrop    = () => { tone(880, .1, 'sine', .07); tone(590, .12, 'sine', .06, .09); };
+const sFanfare = () => { tone(523, .14, 'triangle', .09); tone(659, .14, 'triangle', .09, .13);
+                         tone(784, .2, 'triangle', .1, .26); tone(1047, .3, 'triangle', .09, .4); };
+const sRumble  = () => tone(60, .5, 'sawtooth', .06);
 
 /* ====================== simulation ====================== */
 
 const F_DECAY = 100/21600, H_DECAY = 100/28800, E_DECAY = 100/36000, E_REGEN = 100/5400;
 
-function tickPet(p, sec) {
+function inAffinity(p) { return S.mode === 'home' && AFFINITY[p.sp] === S.env; }
+
+function tickPet(p, sec, aff) {
   if (p.asleep) {
     p.food = clamp(p.food - F_DECAY * sec * .5);
     p.energy = clamp(p.energy + E_REGEN * sec);
@@ -464,13 +634,18 @@ function tickPet(p, sec) {
     p.food = clamp(p.food - F_DECAY * sec);
     p.energy = clamp(p.energy - E_DECAY * sec);
   }
-  const hMul = p.food < 30 ? 2 : 1;
+  const hMul = (p.food < 30 ? 2 : 1) * (aff ? .5 : 1);
   p.happy = clamp(p.happy - H_DECAY * hMul * sec);
 }
 
+// offline catch-up (capped at 24h) + offline keepsake drops
 {
   const away = Math.min(86400, (Date.now() - (S.last || Date.now())) / 1000);
-  if (away > 60) S.pets.forEach(p => tickPet(p, away));
+  if (away > 60) S.pets.forEach(p => {
+    tickPet(p, away, false);
+    const drops = Math.min(3, Math.floor(away / 3600 * 0.4 * Math.random() * 2));
+    if (drops > 0) S.keepsakes[p.sp] = (S.keepsakes[p.sp] || 0) + drops;
+  });
 }
 
 /* ====================== creature art ====================== */
@@ -501,6 +676,14 @@ function mouth(mood, cx, cy) {
 }
 const zzz = (x, y) => `<text x="${x}" y="${y}" font-size="26" fill="#cfc4e8" font-weight="bold">z&#8202;z</text>`;
 
+function scarf(cy, w, color) {
+  return `
+  <ellipse cx="200" cy="${cy}" rx="${w}" ry="14" fill="${color}"/>
+  <rect x="${200 + w * .35}" y="${cy}" width="20" height="44" rx="9" fill="${color}"/>
+  <path d="M${200 + w * .35 + 3} ${cy + 42} l 4 9 M${200 + w * .35 + 10} ${cy + 43} l 0 10 M${200 + w * .35 + 17} ${cy + 42} l -4 9"
+        stroke="${color}" stroke-width="3" stroke-linecap="round"/>`;
+}
+
 const GRADS = `
   <radialGradient id="gDrag" cx="42%" cy="32%" r="80%">
     <stop offset="0%" stop-color="#a8e6c0"/><stop offset="60%" stop-color="#7fd4a4"/><stop offset="100%" stop-color="#5cbf8b"/>
@@ -520,11 +703,23 @@ const GRADS = `
   <radialGradient id="gKrk" cx="42%" cy="30%" r="80%">
     <stop offset="0%" stop-color="#cfc0f5"/><stop offset="60%" stop-color="#b8a7f0"/><stop offset="100%" stop-color="#8f7ad6"/>
   </radialGradient>
+  <radialGradient id="gUni" cx="42%" cy="32%" r="80%">
+    <stop offset="0%" stop-color="#ffffff"/><stop offset="60%" stop-color="#eef7ea"/><stop offset="100%" stop-color="#cfe8cf"/>
+  </radialGradient>
+  <linearGradient id="gHorn" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0%" stop-color="#b8e8c8"/><stop offset="100%" stop-color="#fff6c9"/>
+  </linearGradient>
+  <radialGradient id="gPeg" cx="42%" cy="32%" r="80%">
+    <stop offset="0%" stop-color="#ffffff"/><stop offset="60%" stop-color="#f2f6ff"/><stop offset="100%" stop-color="#d4e2f7"/>
+  </radialGradient>
+  <radialGradient id="gWisp" cx="45%" cy="40%" r="75%">
+    <stop offset="0%" stop-color="#fff9d8"/><stop offset="55%" stop-color="#c8ecff"/><stop offset="100%" stop-color="#8ad0ff"/>
+  </radialGradient>
   <radialGradient id="gEgg" cx="40%" cy="30%" r="85%">
     <stop offset="0%" stop-color="#fffdf6"/><stop offset="100%" stop-color="#ead9f2"/>
   </radialGradient>`;
 
-function dragonArt(mood, asleep) {
+function dragonArt(mood, asleep, cold) {
   return `
   <ellipse cx="200" cy="392" rx="100" ry="15" fill="#000" opacity=".18"/>
   <g class="tailWag">
@@ -548,8 +743,6 @@ function dragonArt(mood, asleep) {
         fill="none" stroke="#e0cfa0" stroke-width="3" opacity=".8"/>
   <ellipse cx="152" cy="362" rx="24" ry="15" fill="#5cbf8b"/>
   <ellipse cx="248" cy="362" rx="24" ry="15" fill="#5cbf8b"/>
-  <ellipse cx="144" cy="358" rx="4.5" ry="3.5" fill="#a8e6c0"/><ellipse cx="156" cy="360" rx="4.5" ry="3.5" fill="#a8e6c0"/>
-  <ellipse cx="240" cy="358" rx="4.5" ry="3.5" fill="#a8e6c0"/><ellipse cx="252" cy="360" rx="4.5" ry="3.5" fill="#a8e6c0"/>
   <circle cx="200" cy="170" r="92" fill="url(#gDrag)" stroke="#57b183" stroke-width="3"/>
   <path d="M146 96 Q 138 66 158 62 Q 172 78 166 100 Z" fill="#fdf6de" stroke="#e8d9a8" stroke-width="3"/>
   <path d="M254 96 Q 262 66 242 62 Q 228 78 234 100 Z" fill="#fdf6de" stroke="#e8d9a8" stroke-width="3"/>
@@ -562,12 +755,13 @@ function dragonArt(mood, asleep) {
   <ellipse cx="207" cy="205" rx="3.4" ry="4.6" fill="#3a2e3d" opacity=".8"/>
   ${mouth(asleep ? 'ok' : mood, 200, 224)}
   ${mood === 'happy' && !asleep ? `<path d="M212 228 l 5 8 l 6 -6 z" fill="#fff"/>` : ''}
+  ${cold ? scarf(252, 66, '#e86a5e') : ''}
   ${!asleep ? `<g fill="#cfc4e8"><circle class="puffAnim" cx="268" cy="120" r="8"/>
     <circle class="puffAnim p2" cx="274" cy="114" r="5.5"/><circle class="puffAnim p3" cx="266" cy="110" r="6.5"/></g>` : ''}
   ${asleep ? zzz(288, 96) : ''}`;
 }
 
-function phoenixArt(mood, asleep) {
+function phoenixArt(mood, asleep, cold) {
   const flame = (x, h, w, cls) =>
     `<path class="flick ${cls}" d="M${x} 118 q ${-w} ${-h*.55} 0 ${-h} q ${w} ${h*.45} 0 ${h} z" fill="url(#gFlame)"/>`;
   return `
@@ -592,13 +786,14 @@ function phoenixArt(mood, asleep) {
   ${eyes(158, 242, 218, asleep, mood)}
   ${blushes(126, 274, 252)}
   <path d="M200 240 l -13 12 q 13 10 26 0 z" fill="#ffb545" stroke="#e8874f" stroke-width="3" stroke-linejoin="round"/>
+  ${cold ? scarf(300, 74, '#8ad0ff') : ''}
   ${!asleep ? `<g fill="#ffd965"><circle class="ember" cx="120" cy="150" r="4"/>
     <circle class="ember e2" cx="286" cy="160" r="3.5"/></g>` : ''}
   ${asleep ? zzz(292, 140) : (mood === 'sad'
       ? `<path d="M184 276 Q 200 266 216 276" fill="none" stroke="#3a2e3d" stroke-width="4.5" stroke-linecap="round"/>` : '')}`;
 }
 
-function krakenArt(mood, asleep) {
+function krakenArt(mood, asleep, cold) {
   const tent = (x, dx, i) => `
     <g class="tent" style="animation-delay:${i * .4}s">
       <path d="M${x} 300 q ${dx} 44 ${dx * .3} 62" fill="none" stroke="#8f7ad6" stroke-width="26" stroke-linecap="round"/>
@@ -617,28 +812,119 @@ function krakenArt(mood, asleep) {
   ${eyes(156, 244, 208, asleep, mood)}
   ${blushes(122, 278, 242)}
   ${mouth(asleep ? 'ok' : mood, 200, 252)}
+  ${cold ? scarf(288, 80, '#ffd965') : ''}
   ${!asleep ? `<g fill="none" stroke="#cfe8ff" stroke-width="2.5">
     <circle class="bub" cx="292" cy="140" r="7"/><circle class="bub b2" cx="118" cy="150" r="5"/></g>` : ''}
   ${asleep ? zzz(292, 118) : ''}`;
 }
 
-const ART = { dragon: dragonArt, phoenix: phoenixArt, kraken: krakenArt };
+function unicornArt(mood, asleep, cold) {
+  return `
+  <ellipse cx="200" cy="392" rx="98" ry="15" fill="#000" opacity=".18"/>
+  <g class="tailWag">
+    <path d="M262 316 Q 310 322 322 292" fill="none" stroke="#b8dcb8" stroke-width="20" stroke-linecap="round"/>
+    <path d="M322 292 q 14 -8 10 -24 q -16 2 -20 16" fill="#9fd4a8"/>
+  </g>
+  <ellipse cx="200" cy="302" rx="78" ry="68" fill="url(#gUni)" stroke="#b8d4b8" stroke-width="3"/>
+  <ellipse cx="200" cy="318" rx="50" ry="42" fill="url(#gBelly)"/>
+  <ellipse cx="150" cy="362" rx="22" ry="14" fill="#dceede"/>
+  <ellipse cx="250" cy="362" rx="22" ry="14" fill="#dceede"/>
+  <ellipse cx="132" cy="278" rx="16" ry="10" fill="#9fd4a8" opacity=".8"/>
+  <ellipse cx="262" cy="252" rx="12" ry="8" fill="#9fd4a8" opacity=".8"/>
+  <circle cx="200" cy="172" r="90" fill="url(#gUni)" stroke="#b8d4b8" stroke-width="3"/>
+  <path d="M138 108 Q 124 88 138 74 Q 154 84 154 104 Z" fill="#dceede" stroke="#b8d4b8" stroke-width="3"/>
+  <path d="M262 108 Q 276 88 262 74 Q 246 84 246 104 Z" fill="#dceede" stroke="#b8d4b8" stroke-width="3"/>
+  <path class="hornGlow" d="M200 92 L 188 34 Q 200 26 212 34 Z" fill="url(#gHorn)" stroke="#e8d9a8" stroke-width="3"/>
+  <path d="M156 96 q 22 -18 46 -10 q -8 18 -26 22" fill="#9fd4a8"/>
+  <circle cx="168" cy="88" r="8" fill="#f79ec0"/><circle cx="177" cy="80" r="5" fill="#ffd965"/>
+  ${eyes(164, 236, 166, asleep, mood)}
+  ${blushes(134, 266, 200)}
+  <ellipse cx="194" cy="208" rx="3" ry="4.2" fill="#3a2e3d" opacity=".7"/>
+  <ellipse cx="206" cy="208" rx="3" ry="4.2" fill="#3a2e3d" opacity=".7"/>
+  ${mouth(asleep ? 'ok' : mood, 200, 226)}
+  ${cold ? scarf(254, 62, '#9fd4a8') : ''}
+  ${asleep ? zzz(286, 100) : ''}`;
+}
+
+function pegasusArt(mood, asleep, cold) {
+  return `
+  <ellipse cx="200" cy="392" rx="95" ry="15" fill="#000" opacity=".18"/>
+  <g class="wingF">
+    <path d="M112 288 Q 62 262 66 218 Q 96 226 110 250 Q 108 234 124 228 Q 132 258 128 282 Z"
+          fill="#ffffff" stroke="#c8d8f0" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+  <g class="wingF R">
+    <path d="M288 288 Q 338 262 334 218 Q 304 226 290 250 Q 292 234 276 228 Q 268 258 272 282 Z"
+          fill="#ffffff" stroke="#c8d8f0" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+  <ellipse cx="200" cy="304" rx="76" ry="66" fill="url(#gPeg)" stroke="#c8d8f0" stroke-width="3"/>
+  <ellipse cx="200" cy="320" rx="48" ry="40" fill="url(#gBelly)"/>
+  <ellipse cx="152" cy="362" rx="21" ry="14" fill="#e2ebf7"/>
+  <ellipse cx="248" cy="362" rx="21" ry="14" fill="#e2ebf7"/>
+  <circle cx="200" cy="174" r="88" fill="url(#gPeg)" stroke="#c8d8f0" stroke-width="3"/>
+  <path d="M142 106 Q 130 86 144 74 Q 158 84 158 102 Z" fill="#e2ebf7" stroke="#c8d8f0" stroke-width="3"/>
+  <path d="M258 106 Q 270 86 256 74 Q 242 84 242 102 Z" fill="#e2ebf7" stroke="#c8d8f0" stroke-width="3"/>
+  <path d="M150 100 q 30 -26 62 -14 q -4 12 -14 18 q 10 0 18 8 q -22 16 -50 6" fill="#f7b5d2"/>
+  <path d="M258 300 q 26 8 30 34 q -20 2 -32 -14" fill="#f7b5d2"/>
+  ${eyes(164, 236, 168, asleep, mood)}
+  ${blushes(134, 266, 202)}
+  <ellipse cx="194" cy="210" rx="3" ry="4.2" fill="#3a2e3d" opacity=".7"/>
+  <ellipse cx="206" cy="210" rx="3" ry="4.2" fill="#3a2e3d" opacity=".7"/>
+  ${mouth(asleep ? 'ok' : mood, 200, 228)}
+  ${cold ? scarf(256, 60, '#f7b5d2') : ''}
+  ${!asleep ? `<g fill="#ffffff" opacity=".8"><circle class="bub" cx="120" cy="140" r="6"/>
+    <circle class="bub b2" cx="284" cy="130" r="5"/></g>` : ''}
+  ${asleep ? zzz(284, 102) : ''}`;
+}
+
+function wispArt(mood, asleep, cold) {
+  return `
+  <ellipse cx="200" cy="392" rx="60" ry="11" fill="#000" opacity=".12"/>
+  <circle cx="200" cy="230" r="130" fill="url(#gWisp)" opacity=".25"/>
+  <circle cx="200" cy="230" r="105" fill="url(#gWisp)" stroke="#a8d8f7" stroke-width="3"/>
+  <path class="flick" d="M200 128 q -16 -26 0 -46 q 16 22 0 46 z" fill="url(#gWisp)" stroke="#a8d8f7" stroke-width="2.5"/>
+  <ellipse cx="148" cy="282" rx="16" ry="22" fill="url(#gWisp)" stroke="#a8d8f7" stroke-width="2.5"/>
+  <ellipse cx="252" cy="282" rx="16" ry="22" fill="url(#gWisp)" stroke="#a8d8f7" stroke-width="2.5"/>
+  ${eyes(164, 236, 218, asleep, mood)}
+  ${blushes(136, 264, 252)}
+  ${mouth(asleep ? 'ok' : mood, 200, 258)}
+  ${cold ? `<path d="M156 142 q 44 -26 88 0 l -6 -26 q -38 -18 -76 0 z" fill="#e86a5e"/>
+            <circle cx="200" cy="108" r="9" fill="#ffd965"/>` : ''}
+  ${!asleep ? `<g fill="#fff9d8"><circle class="ember" cx="118" cy="180" r="4"/>
+    <circle class="ember e2" cx="284" cy="190" r="3.5"/></g>` : ''}
+  ${asleep ? zzz(290, 150) : ''}`;
+}
+
+const ART = { dragon: dragonArt, phoenix: phoenixArt, kraken: krakenArt,
+              unicorn: unicornArt, pegasus: pegasusArt, wisp: wispArt };
 
 function creatureMoodSig(p) {
   return p.asleep ? 'z' : (Math.min(p.food, p.happy, p.energy) < 35 ? 'sad' : (p.happy > 70 ? 'happy' : 'ok'));
 }
 function creatureSVG(p) {
   const mood = creatureMoodSig(p) === 'z' ? 'ok' : creatureMoodSig(p);
-  return `<svg class="creature" viewBox="0 0 400 410"><defs>${GRADS}</defs>${ART[p.sp](mood, p.asleep)}</svg>`;
+  const cold = wxState.cold;
+  let art = ART[p.sp](mood, p.asleep, cold);
+  if (p.form === 'moody')
+    art += `<path d="M148 78 q 40 -30 92 -6 q 6 10 -6 12 q -46 12 -86 2 q -8 -2 0 -8 z" fill="#46395a"/>
+            <circle cx="248" cy="72" r="8" fill="#46395a"/>`;
+  if (p.form === 'sunny')
+    art += `<g fill="#ffd965"><circle cx="120" cy="70" r="4"/><circle cx="286" cy="62" r="3.5"/>
+            <circle cx="200" cy="34" r="4.5"/></g>`;
+  const t = p.form === 'chonky' ? 'scale(1.13 .97)' : p.form === 'zoomy' ? 'scale(.94 1.05)' : '';
+  const f = p.form === 'moody' ? 'style="filter:saturate(.55) brightness(.92)"' : '';
+  return `<svg class="creature" viewBox="0 0 400 410"><defs>${GRADS}</defs>
+    <g transform="translate(200 205) ${t} translate(-200 -205)" ${f}>${art}</g></svg>`;
 }
 
-function eggSVG(taps) {
+function eggSVG(taps, rare) {
   return `
   <svg viewBox="0 0 200 230"><defs>${GRADS}</defs>
   <ellipse cx="100" cy="205" rx="62" ry="11" fill="#000" opacity=".18"/>
-  <ellipse cx="100" cy="120" rx="68" ry="88" fill="url(#gEgg)" stroke="#d6bde4" stroke-width="4"/>
-  <circle cx="78" cy="90" r="7" fill="#d6bde4"/><circle cx="122" cy="132" r="9" fill="#cfc4e8"/>
-  <circle cx="94" cy="160" r="5" fill="#d6bde4"/><circle cx="126" cy="76" r="5" fill="#cfc4e8"/>
+  <ellipse cx="100" cy="120" rx="68" ry="88" fill="url(#gEgg)" stroke="${rare ? '#ffd965' : '#d6bde4'}" stroke-width="${rare ? 5 : 4}"/>
+  <circle cx="78" cy="90" r="7" fill="${rare ? '#ffd965' : '#d6bde4'}"/><circle cx="122" cy="132" r="9" fill="#cfc4e8"/>
+  <circle cx="94" cy="160" r="5" fill="#d6bde4"/><circle cx="126" cy="76" r="5" fill="${rare ? '#ffd965' : '#cfc4e8'}"/>
+  ${rare ? '<text x="86" y="128" font-size="26">✨</text>' : ''}
   <g stroke="#a884c2" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
     <path d="M64 78 l 13 15 l -9 13 l 15 11" opacity="${taps >= 2 ? 1 : 0}"/>
     <path d="M136 100 l -13 12 l 10 13 l -8 9" opacity="${taps >= 4 ? 1 : 0}"/>
@@ -687,6 +973,21 @@ function glowShroom() {
     <circle cx="9" cy="13" r="2.2" fill="#fff" opacity=".8"/>
     <circle cx="20" cy="11" r="1.8" fill="#fff" opacity=".8"/>`);
 }
+function bigShroom(scale, cap) {
+  return svgDeco(110 * scale, 120 * scale, `
+    <g transform="scale(${scale})">
+    <rect x="44" y="58" width="22" height="60" rx="10" fill="#efe6d0"/>
+    <path d="M4 62 q 51 -70 102 0 z" fill="${cap}"/>
+    <circle cx="34" cy="38" r="8" fill="#fff" opacity=".85"/>
+    <circle cx="72" cy="30" r="6" fill="#fff" opacity=".85"/>
+    <circle cx="58" cy="48" r="5" fill="#fff" opacity=".85"/></g>`);
+}
+function crystal(scale, color) {
+  return svgDeco(50 * scale, 70 * scale, `
+    <g transform="scale(${scale})" class="crystalGlow">
+    <path d="M25 2 L 40 26 L 34 68 L 16 68 L 10 26 Z" fill="${color}" opacity=".9"/>
+    <path d="M25 2 L 30 26 L 25 68" stroke="#fff" stroke-width="2" opacity=".5" fill="none"/></g>`);
+}
 function palmTree() {
   return svgDeco(120, 130, `
     <path d="M58 130 q 4 -50 18 -76" stroke="#8a6248" stroke-width="10" fill="none" stroke-linecap="round"/>
@@ -721,6 +1022,17 @@ function starfishSVG() {
   const arm = a => `<ellipse cx="0" cy="-8" rx="3.5" ry="8.5" fill="#f2a25c" transform="rotate(${a} 12 12) translate(12 12)"/>`;
   return svgDeco(24, 24, `${[0,72,144,216,288].map(arm).join('')}<circle cx="12" cy="12" r="4.5" fill="#ffb37a"/>`);
 }
+function campfireSVG() {
+  return svgDeco(80, 70, `
+    <defs><linearGradient id="cfF" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#ff8a5c"/><stop offset="100%" stop-color="#ffd965"/></linearGradient></defs>
+    <g class="campfire">
+    <rect x="14" y="54" width="52" height="8" rx="4" fill="#8a6248" transform="rotate(-8 40 58)"/>
+    <rect x="14" y="54" width="52" height="8" rx="4" fill="#a5754f" transform="rotate(8 40 58)"/>
+    <path class="flick" d="M40 52 q -16 -14 -8 -34 q 8 8 10 14 q 0 -12 8 -20 q 12 18 4 34 q 8 -4 10 -12 q 6 20 -8 28 q -10 5 -16 -10 z"
+      transform="translate(0 8)" fill="url(#cfF)"/>
+    </g>`);
+}
 
 function pos(html, style) { return `<div class="deco" style="${style}">${html}</div>`; }
 
@@ -730,6 +1042,7 @@ const APPS = [
   ['📷','Camera'],['⛅','Weather'],['⏰','Clock'],['📝','Notes'],
   ['🎮','Games'],['💬','Chat'],['🍕','Pizza'],['🏦','Bank']
 ];
+const GAMES_ICON = 8;
 const bitten = new Map();   // icon index -> restore timestamp (session-only)
 const BITES = {
   dragon:  ["Sprout bit {app}! Verdict: crunchy, slightly pixelated.",
@@ -737,7 +1050,13 @@ const BITES = {
   phoenix: ["Cinder lightly toasted {app} before eating it. Gourmet.",
             "Cinder took ONE dramatic bite of {app} and swooned. She's fine."],
   kraken:  ["Inky wrapped four arms around {app}. It joins the collection.",
-            "Inky left polite ink graffiti on {app}: “yum.”"]
+            "Inky left polite ink graffiti on {app}: “yum.”"],
+  unicorn: ["Fern politely grazed on {app}. Flowers grew from the crumbs.",
+            "Fern says {app} tastes like morning dew. Sure, Fern."],
+  pegasus: ["Puff nibbled {app} and declared it 'fluffy'. It is software.",
+            "Puff carried {app} halfway across the sky first. For drama."],
+  wisp:    ["Glim absorbed a bite of {app} and glowed a suspicious new color.",
+            "Glim phased THROUGH {app} while biting it. Physics is optional."]
 };
 
 function scenery(env) {
@@ -749,8 +1068,9 @@ function scenery(env) {
     return `<div class="pStatus"><span>${hr}:${mn} ${ap}</span><span>📶 🔋 87%</span></div>
       <div class="iconGrid">${icons}</div><div class="dock"></div>`;
   }
+  let out = '';
   if (env === 'meadow') {
-    let out = `
+    out = `
       <div class="deco sun"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>
       <div class="deco cloud" style="top:10%; animation-duration:46s; animation-delay:-8s"></div>
       <div class="deco cloud" style="top:22%; animation-duration:64s; animation-delay:-30s; transform:scale(.7); opacity:.85"></div>
@@ -763,10 +1083,8 @@ function scenery(env) {
     [12, 44, 66, 92].forEach((x, i) => { out += pos(grassTuft(), `bottom:${3 + (i % 2) * 13}%; left:${x}%; opacity:.9;`); });
     out += pos(`<span class="butterfly" style="display:inline-block">${butterflySVG('#f79ec0','#ffc7dd')}</span>`, 'bottom:30%; left:14%;');
     out += pos(`<span class="butterfly" style="display:inline-block; animation-delay:-8s">${butterflySVG('#8ad0ff','#c9ecff')}</span>`, 'bottom:38%; left:52%;');
-    return out;
-  }
-  if (env === 'grove') {
-    let out = `<div class="deco moon"><i style="top:12px;left:14px;width:11px;height:11px"></i><i style="top:30px;left:30px;width:7px;height:7px"></i><i style="top:16px;left:36px;width:5px;height:5px"></i></div>
+  } else if (env === 'grove') {
+    out = `<div class="deco moon"><i style="top:12px;left:14px;width:11px;height:11px"></i><i style="top:30px;left:30px;width:7px;height:7px"></i><i style="top:16px;left:36px;width:5px;height:5px"></i></div>
       <div class="deco meteor"></div>
       <div class="deco meteor" style="left:55%; top:4%; animation-delay:4.5s"></div>`;
     for (let i = 0; i < 16; i++)
@@ -781,24 +1099,129 @@ function scenery(env) {
     [[62,'18%',0],[72,'70%',2],[58,'44%',4],[80,'30%',1],[66,'85%',3]].forEach(([t, l, d]) =>
       { out += `<div class="deco firefly" style="top:${t}%; left:${l}; animation-duration:${6 + d}s; animation-delay:${d}s"></div>`; });
     out += `<div class="deco fog" style="bottom:24%"></div><div class="deco fog" style="bottom:10%; animation-delay:-7s; opacity:.09"></div>`;
-    return out;
+  } else if (env === 'cove') {
+    out = `
+      <div class="deco sun" style="right:auto; left:8%"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>
+      <div class="deco cloud" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.8"></div>
+      <div class="deco wave" style="--wc:#8fdce8; top:47.5%; animation-duration:5s; opacity:.9"></div>
+      <div class="deco wave" style="--wc:#b8ecf2; top:52%; animation-duration:6.5s; animation-delay:-2s; opacity:.8"></div>
+      <div class="deco wave" style="--wc:#d8f4f6; top:57%; animation-duration:8s; animation-delay:-4s; opacity:.6"></div>`;
+    out += pos(`<span class="bobber" style="display:inline-block">${sailboat()}</span>`, 'top:34%; left:64%;');
+    out += pos(palmTree(), 'bottom:26%; left:-3%;');
+    out += pos(palmTree(), 'bottom:28%; right:-5%; transform:scaleX(-1);');
+    out += pos(shell(), 'bottom:8%; left:22%;');
+    out += pos(shell(), 'bottom:4%; left:64%; transform:rotate(20deg);');
+    out += pos(starfishSVG(), 'bottom:12%; right:12%;');
+    out += pos(starfishSVG(), 'bottom:3%; left:38%; transform:rotate(40deg) scale(.8);');
+    out += pos(`<span class="crab" style="display:inline-block">${crabSVG()}</span>`, 'bottom:1.5%; left:4%;');
+  } else if (env === 'cavern') {
+    for (let i = 0; i < 8; i++)
+      out += `<div class="deco star" style="top:${3 + Math.random() * 30}%; left:${Math.random() * 94}%;
+              width:2px; height:2px; animation-delay:${Math.random() * 3}s"></div>`;
+    out += pos(crystal(1.3, '#b48ae8'), 'bottom:32%; left:2%;');
+    out += pos(crystal(.9, '#8ad0ff'), 'bottom:36%; left:16%;');
+    out += pos(crystal(1.1, '#f79ec0'), 'bottom:33%; right:4%;');
+    out += pos(crystal(.7, '#b48ae8'), 'bottom:38%; right:18%;');
+    out += pos(crystal(.8, '#8ad0ff'), 'bottom:4%; left:40%; opacity:.9;');
+    out += pos(crystal(.55, '#f79ec0'), 'bottom:6%; left:78%;');
+    out += pos(svgDeco(60, 40, '<path d="M0 0 L 12 0 L 6 34 Z M 22 0 L 36 0 L 29 26 Z M 46 0 L 60 0 L 53 30 Z" fill="#2e2050"/>'), 'top:0; left:12%;');
+    out += pos(svgDeco(60, 40, '<path d="M0 0 L 14 0 L 7 28 Z M 26 0 L 40 0 L 33 34 Z" fill="#2e2050"/>'), 'top:0; right:8%;');
+  } else if (env === 'hollow') {
+    out += pos(bigShroom(1.2, '#e8734f'), 'bottom:30%; left:-2%;');
+    out += pos(bigShroom(.8, '#b48ae8'), 'bottom:34%; left:20%; opacity:.9;');
+    out += pos(bigShroom(1, '#f2a25c'), 'bottom:31%; right:0%;');
+    [10, 30, 58, 82].forEach((x, i) =>
+      { out += pos(`<span class="shroomGlow" style="display:inline-block">${glowShroom()}</span>`, `bottom:${4 + (i % 2) * 11}%; left:${x}%;`); });
+    for (let i = 0; i < 7; i++)
+      out += `<div class="deco spore" style="bottom:${10 + Math.random() * 30}%; left:${Math.random() * 94}%;
+              animation-duration:${7 + Math.random() * 6}s; animation-delay:${Math.random() * 5}s"></div>`;
+    [[58,'26%',1],[70,'62%',3]].forEach(([t, l, d]) =>
+      { out += `<div class="deco firefly" style="top:${t}%; left:${l}; animation-duration:${6 + d}s; animation-delay:${d}s"></div>`; });
+  } else if (env === 'ember') {
+    out = `<div class="deco moon" style="opacity:.6"></div>`;
+    for (let i = 0; i < 5; i++)
+      out += `<div class="deco steam" style="bottom:${30 + Math.random() * 8}%; left:${8 + Math.random() * 78}%;
+              animation-duration:${5 + Math.random() * 4}s; animation-delay:${Math.random() * 4}s"></div>`;
+    out += pos(svgDeco(90, 40, '<ellipse cx="24" cy="28" rx="24" ry="12" fill="#5a4048"/><ellipse cx="62" cy="30" rx="26" ry="11" fill="#4d363e"/>'), 'bottom:38%; left:4%;');
+    out += pos(svgDeco(90, 40, '<ellipse cx="28" cy="28" rx="26" ry="12" fill="#5a4048"/><ellipse cx="64" cy="30" rx="22" ry="10" fill="#4d363e"/>'), 'bottom:39%; right:2%;');
+    out += pos(svgDeco(50, 60, '<rect x="21" y="18" width="8" height="42" rx="4" fill="#8a6248"/><rect x="10" y="2" width="30" height="22" rx="6" fill="#e8734f"/><rect x="14" y="6" width="22" height="14" rx="4" fill="#ffd965"/>'), 'bottom:40%; left:30%;');
+    out += pos(svgDeco(50, 60, '<rect x="21" y="18" width="8" height="42" rx="4" fill="#8a6248"/><rect x="10" y="2" width="30" height="22" rx="6" fill="#e8734f"/><rect x="14" y="6" width="22" height="14" rx="4" fill="#ffd965"/>'), 'bottom:40%; right:28%;');
   }
-  // cove
-  let out = `
-    <div class="deco sun" style="right:auto; left:8%"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>
-    <div class="deco cloud" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.8"></div>
-    <div class="deco wave" style="--wc:#8fdce8; top:47.5%; animation-duration:5s; opacity:.9"></div>
-    <div class="deco wave" style="--wc:#b8ecf2; top:52%; animation-duration:6.5s; animation-delay:-2s; opacity:.8"></div>
-    <div class="deco wave" style="--wc:#d8f4f6; top:57%; animation-duration:8s; animation-delay:-4s; opacity:.6"></div>`;
-  out += pos(`<span class="bobber" style="display:inline-block">${sailboat()}</span>`, 'top:34%; left:64%;');
-  out += pos(palmTree(), 'bottom:26%; left:-3%;');
-  out += pos(palmTree(), 'bottom:28%; right:-5%; transform:scaleX(-1);');
-  out += pos(shell(), 'bottom:8%; left:22%;');
-  out += pos(shell(), 'bottom:4%; left:64%; transform:rotate(20deg);');
-  out += pos(starfishSVG(), 'bottom:12%; right:12%;');
-  out += pos(starfishSVG(), 'bottom:3%; left:38%; transform:rotate(40deg) scale(.8);');
-  out += pos(`<span class="crab" style="display:inline-block">${crabSVG()}</span>`, 'bottom:1.5%; left:4%;');
+  // dragon campfire when it's cold (any home env)
+  if (wxState.cold && S.pets.some(p => p.sp === 'dragon'))
+    out += pos(campfireSVG(), 'bottom:5%; left:44%;');
   return out;
+}
+
+/* ====================== weather ====================== */
+
+let wxState = { cond: 'clear', cold: false, hot: false, label: 'Clear' };
+let fireLit = false;
+
+const WX_PRESETS = {
+  auto:  { label: 'Auto (my location)', emoji: '📍' },
+  clear: { label: 'Sunny',    emoji: '☀️', st: { cond:'clear', cold:false, hot:false } },
+  cloudy:{ label: 'Cloudy',   emoji: '☁️', st: { cond:'cloudy', cold:false, hot:false } },
+  rain:  { label: 'Rainy',    emoji: '🌧️', st: { cond:'rain', cold:false, hot:false } },
+  storm: { label: 'Stormy',   emoji: '⛈️', st: { cond:'storm', cold:false, hot:false } },
+  snow:  { label: 'Snowy',    emoji: '❄️', st: { cond:'snow', cold:true, hot:false } },
+  heat:  { label: 'Heat wave',emoji: '🥵', st: { cond:'clear', cold:false, hot:true } },
+  chill: { label: 'Cold snap',emoji: '🥶', st: { cond:'clear', cold:true, hot:false } }
+};
+
+function wxFromCode(code, temp) {
+  let cond = 'clear';
+  if (code >= 1 && code <= 3) cond = 'cloudy';
+  else if (code >= 45 && code <= 48) cond = 'fog';
+  else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) cond = 'rain';
+  else if ((code >= 71 && code <= 77) || code === 85 || code === 86) cond = 'snow';
+  else if (code >= 95) cond = 'storm';
+  return { cond, cold: (temp != null && temp < 8) || cond === 'snow', hot: temp != null && temp > 30 };
+}
+
+function applyWx(st, label) {
+  const changed = st.cond !== wxState.cond || st.cold !== wxState.cold || st.hot !== wxState.hot;
+  wxState = { cond: st.cond, cold: st.cold, hot: st.hot, label };
+  if (changed) {
+    fireLit = false;
+    renderWx(); renderStage(); renderAll(true);
+  }
+  renderHUD();
+}
+
+function fetchAutoWx() {
+  if (S.wxMode !== 'auto' || !navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(async pos => {
+    try {
+      const { latitude, longitude } = pos.coords;
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude.toFixed(3)}&longitude=${longitude.toFixed(3)}&current=temperature_2m,weather_code`);
+      const j = await r.json();
+      const code = j.current.weather_code, temp = j.current.temperature_2m;
+      const st = wxFromCode(code, temp);
+      applyWx(st, `${Math.round(temp)}°C real weather`);
+    } catch (e) { /* offline or blocked — keep current */ }
+  }, () => {}, { timeout: 8000, maximumAge: 600000 });
+}
+
+function renderWx() {
+  const w = $('#wx');
+  let html = '';
+  if (wxState.cond === 'rain' || wxState.cond === 'storm') {
+    for (let i = 0; i < 18; i++)
+      html += `<div class="drop" style="left:${Math.random() * 98}%; animation-duration:${.7 + Math.random() * .5}s; animation-delay:${Math.random() * 1.2}s"></div>`;
+    html += '<div class="wxDim"></div>';
+  }
+  if (wxState.cond === 'storm') html += '<div class="wxFlash"></div><div class="wxFlash f2"></div>';
+  if (wxState.cond === 'snow')
+    for (let i = 0; i < 16; i++)
+      html += `<div class="flake" style="left:${Math.random() * 98}%; width:${4 + Math.random() * 4}px; height:${4 + Math.random() * 4}px; animation-duration:${3.2 + Math.random() * 2.4}s; animation-delay:${Math.random() * 3}s"></div>`;
+  if (wxState.cond === 'cloudy') html += `<div class="wxDim" style="background:rgba(90,95,115,.16)"></div>
+    <div class="deco cloud" style="top:9%; animation-duration:38s; opacity:.9"></div>
+    <div class="deco cloud" style="top:19%; animation-duration:55s; animation-delay:-25s; transform:scale(.8)"></div>`;
+  if (wxState.cond === 'fog') html += `<div class="deco fog" style="top:30%; opacity:.3"></div>
+    <div class="deco fog" style="top:50%; opacity:.25; animation-delay:-6s"></div>`;
+  if (wxState.hot) html += '<div class="heatShimmer"></div>';
+  w.innerHTML = html;
 }
 
 /* ====================== rendering ====================== */
@@ -816,18 +1239,22 @@ function renderStage() {
 function renderPets() {
   let html = '';
   S.pets.forEach((p, i) => {
-    html += `<div class="petCard ${i === S.active ? 'active' : ''} ${p.asleep ? 'asleep' : ''}"
+    const badge = p.form ? FORM_BADGE[p.form] + ' ' : '';
+    const aff = inAffinity(p) ? ' ♥' : '';
+    html += `<div class="petCard sp-${p.sp} ${i === S.active ? 'active' : ''} ${p.asleep ? 'asleep' : ''}"
       data-i="${i}" style="left:${p.x}%; bottom:${3 + (i % 3) * 1.5}%">
       <span class="flipWrap" style="transform:${p.dir < 0 ? 'scaleX(-1)' : 'none'}">${creatureSVG(p)}</span>
-      <span class="petName">${SPECIES[p.sp].name}</span></div>`;
+      <span class="petName">${badge}${petName(p)}${aff}</span></div>`;
   });
-  if (S.egg) html += `<div class="eggCard" id="eggCard">${eggSVG(S.egg.taps)}<span class="petName">??? egg</span></div>`;
+  if (S.egg) html += `<div class="eggCard ${S.egg.rare ? 'rare' : ''}" id="eggCard">${eggSVG(S.egg.taps, S.egg.rare)}<span class="petName">${S.egg.rare ? '✨ rare egg' : '??? egg'}</span></div>`;
   petsEl.innerHTML = html;
 }
 
 function renderHUD() {
   $('#giggles').textContent = Math.floor(S.giggles);
   $('#btnEgg').hidden = !(S.pets.length < MAX_PETS && !S.egg && S.pets.length > 0);
+  $('#btnSound').textContent = S.sound ? '🔊' : '🔇';
+  $('#btnWx').textContent = S.wxMode === 'auto' ? '🌦️' : WX_PRESETS[S.wxMode].emoji;
   const p = S.pets[S.active];
   $('#statPanel').hidden = !p;
   if (p) {
@@ -843,39 +1270,11 @@ function renderHUD() {
 
 let lastSig = '';
 function renderAll(force) {
-  const sig = JSON.stringify([S.env, S.egg && S.egg.taps, S.active,
-    S.pets.map(p => [p.sp, p.asleep, creatureMoodSig(p)])]);
+  const sig = JSON.stringify([S.env, S.mode, S.egg && S.egg.taps, S.active, wxState.cold,
+    S.pets.map(p => [p.sp, p.asleep, creatureMoodSig(p), p.form, p.name, inAffinity(p)])]);
   if (force || sig !== lastSig) { renderPets(); lastSig = sig; }
   renderHUD();
 }
-
-/* ====================== wandering ====================== */
-
-setInterval(() => {                                    // pick new destinations
-  S.pets.forEach(p => {
-    if (p.asleep) { p.tx = p.x; return; }
-    if (p.biteTarget != null) return;
-    if (Math.abs((p.tx ?? p.x) - p.x) < 1 && Math.random() < 0.18)
-      p.tx = 12 + Math.random() * 76;
-  });
-}, 1000);
-
-setInterval(() => {                                    // move toward destinations
-  S.pets.forEach((p, i) => {
-    const el = petsEl.querySelector(`.petCard[data-i="${i}"]`);
-    if (!el) return;
-    const d = (p.tx ?? p.x) - p.x;
-    if (Math.abs(d) > 0.8 && !p.asleep) {
-      p.x += Math.sign(d) * Math.min(Math.abs(d), 0.8);
-      p.dir = Math.sign(d) || 1;
-      el.classList.add('walking');
-      el.querySelector('.flipWrap').style.transform = p.dir < 0 ? 'scaleX(-1)' : 'none';
-    } else {
-      el.classList.remove('walking');
-    }
-    el.style.left = p.x + '%';
-  });
-}, 120);
 
 /* ====================== feedback ====================== */
 
@@ -889,15 +1288,80 @@ function speak(msg) {
   const b = $('#bubble'); b.textContent = msg; b.classList.add('show');
   clearTimeout(bubbleT); bubbleT = setTimeout(() => b.classList.remove('show'), 4200);
 }
+let notifT;
+function notify(msg) {
+  const n = $('#notif'); n.textContent = msg; n.classList.add('show');
+  clearTimeout(notifT); notifT = setTimeout(() => n.classList.remove('show'), 3200);
+}
 function particle(emoji, x, y) {
   const s = document.createElement('span');
   s.className = 'float'; s.textContent = emoji;
   s.style.left = x + 'px'; s.style.top = y + 'px';
   fx.appendChild(s); setTimeout(() => s.remove(), 1300);
 }
+function breathPuff(x, y) {
+  const s = document.createElement('span');
+  s.className = 'breath';
+  s.style.left = x + 'px'; s.style.top = y + 'px';
+  fx.appendChild(s); setTimeout(() => s.remove(), 1700);
+}
 function burst(cx, cy) {
   ['🎉','✨','🎊','💖','⭐','✨','🎉','💫'].forEach((e, i) =>
     setTimeout(() => particle(e, cx - 60 + Math.random() * 120, cy - 40 + Math.random() * 80), i * 70));
+}
+function petHeadPos(i) {
+  const el = petsEl.querySelector(`.petCard[data-i="${i}"]`);
+  if (!el) return null;
+  const r = stage.getBoundingClientRect(), br = el.getBoundingClientRect();
+  return { x: br.left - r.left + br.width / 2, y: br.top - r.top + br.height * .3 };
+}
+
+/* ====================== keepsakes / evolution / daily ====================== */
+
+function grantKeepsake(sp, live) {
+  S.keepsakes[sp] = (S.keepsakes[sp] || 0) + 1;
+  if (live) {
+    const [em, nm] = KEEPSAKE[sp];
+    toast(`${em} ${SPECIES[sp].name} left you a ${nm}!`);
+    sDrop();
+    const i = S.pets.findIndex(q => q.sp === sp);
+    const pp = i >= 0 && petHeadPos(i);
+    if (pp) particle(em, pp.x, pp.y);
+  }
+  save();
+}
+
+function checkEvolve(p) {
+  if (p.form || (p.xp || 0) < 40) return;
+  if (p.happy < 35) p.form = 'moody';
+  else if (p.fed > p.petted * 1.5) p.form = 'chonky';
+  else if (p.petted > p.fed * 1.5) p.form = 'zoomy';
+  else p.form = 'sunny';
+  const r = stage.getBoundingClientRect();
+  burst(r.width / 2, r.height * .5);
+  sFanfare(); buzz([40, 60, 40, 60, 40]);
+  toast(`${FORM_BADGE[p.form]} ${petName(p)} evolved into their ${FORM_NAME[p.form]} form!`);
+  renderAll(true); save();
+}
+
+function dailyCheck() {
+  const today = new Date().toDateString();
+  if (S.lastDay === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  S.streak = S.lastDay === yesterday ? S.streak + 1 : 1;
+  S.lastDay = today;
+  if (S.pets.length) {
+    const bonus = 10 + 5 * Math.min(S.streak, 5);
+    S.giggles += bonus;
+    const h = new Date().getHours();
+    const greet = h < 5 ? 'a very late night' : h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
+    setTimeout(() => {
+      toast(`☀️ Good ${greet}! Day ${S.streak} streak: +${bonus} ✨`);
+      const r = stage.getBoundingClientRect();
+      burst(r.width / 2, r.height * .35);
+    }, 1200);
+  }
+  save();
 }
 
 /* ====================== interactions ====================== */
@@ -906,29 +1370,59 @@ petsEl.addEventListener('click', e => {
   const egg = e.target.closest('#eggCard');
   if (egg) return tapEgg(egg);
   const card = e.target.closest('.petCard');
-  if (card && +card.dataset.i !== S.active) { S.active = +card.dataset.i; renderAll(true); save(); }
+  if (!card) return;
+  const i = +card.dataset.i;
+  if (i !== S.active) { S.active = i; renderAll(true); save(); return; }
+  // tap the active pet's name pill to rename
+  if (e.target.closest('.petName')) {
+    const p = S.pets[i];
+    const n = prompt(`Rename ${petName(p)}?`, petName(p));
+    if (n && n.trim()) { p.name = n.trim().slice(0, 14); renderAll(true); save(); }
+  }
 });
 
+let hatching = false;
 function tapEgg(el) {
+  if (hatching) return;
   S.egg.taps++;
-  buzz(20);
+  buzz(20); sPop();
   el.classList.remove('wob'); void el.offsetWidth; el.classList.add('wob');
-  if (S.egg.taps >= EGG_TAPS) {
-    const owned = S.pets.map(p => p.sp);
-    const sp = rnd(Object.keys(SPECIES).filter(k => !owned.includes(k)));
-    S.pets.push({ sp, food: 85, happy: 85, energy: 85, asleep: false, born: Date.now(),
-                  x: 50, tx: 30 + Math.random() * 40, dir: 1 });
-    S.active = S.pets.length - 1;
-    S.egg = null;
-    const r = stage.getBoundingClientRect();
-    burst(r.width / 2, r.height * .6);
-    toast(`🎉 ${SPECIES[sp].name} the ${SPECIES[sp].flavor} hatched!`);
-    buzz([40, 60, 40]);
-  }
+  if (S.egg.taps >= EGG_TAPS) return hatch();
   renderAll(); save();
 }
 
-let petting = false, lastX = 0, lastY = 0, strokeAcc = 0;
+function hatch() {
+  hatching = true;
+  const wantRare = !!S.egg.rare;
+  let pool = Object.keys(SPECIES).filter(k =>
+    SPECIES[k].rare === wantRare && !S.pets.some(p => p.sp === k));
+  if (!pool.length) pool = Object.keys(SPECIES).filter(k => !S.pets.some(p => p.sp === k));
+  const sp = rnd(pool);
+  const newPet = { sp, food: 85, happy: 85, energy: 85, asleep: false, born: Date.now(),
+                   x: 50, tx: 30 + Math.random() * 40, dir: 1, fed: 0, petted: 0, xp: 0 };
+  S.egg = null;
+  S.pets.push(newPet);
+  S.active = S.pets.length - 1;
+  if (!S.album.includes(sp)) S.album.push(sp);
+  renderAll(true); save();
+  // cinematic overlay (pet already exists underneath)
+  const fxEl = $('#hatchFx');
+  fxEl.querySelector('.sil').innerHTML = creatureSVG(newPet);
+  fxEl.querySelector('.sil').classList.add('dark');
+  fxEl.querySelector('.banner').textContent = `${SPECIES[sp].name} the ${SPECIES[sp].flavor}!`;
+  fxEl.classList.add('on'); fxEl.classList.remove('reveal');
+  buzz([40, 80, 40]); sRumble();
+  setTimeout(() => {
+    fxEl.querySelector('.sil').classList.remove('dark');
+    fxEl.classList.add('reveal');
+    sFanfare();
+    const r = stage.getBoundingClientRect();
+    burst(r.width / 2, r.height * .45);
+  }, 1300);
+  setTimeout(() => { fxEl.classList.remove('on', 'reveal'); hatching = false; }, 2900);
+}
+
+let petting = false, lastX = 0, lastY = 0, strokeAcc = 0, petBurst = 0;
 petsEl.addEventListener('pointerdown', e => {
   const card = e.target.closest('.petCard.active');
   if (!card) return;
@@ -947,10 +1441,22 @@ petsEl.addEventListener('pointermove', e => {
   if (strokeAcc > 110) {
     strokeAcc = 0;
     p.happy = clamp(p.happy + 2);
-    p.tx = p.x;                                   // petting pauses wandering
+    p.petted++; p.xp = (p.xp || 0) + 1;
+    p.tx = p.x;
     const r = stage.getBoundingClientRect();
     particle('💗', e.clientX - r.left, e.clientY - r.top);
-    buzz(12);
+    buzz(12); sChirp();
+    petBurst++;
+    // jealousy: lots of petting with an audience
+    if (petBurst >= 12 && S.pets.length > 1 && Math.random() < .3) {
+      petBurst = 0;
+      const other = S.pets.find((q, i) => i !== S.active && !q.asleep);
+      if (other) {
+        other.happy = clamp(other.happy - 2);
+        speak(rnd(JEALOUS).replace('{a}', petName(p)).replace(/\{b\}/g, petName(other)));
+      }
+    }
+    checkEvolve(p);
     renderHUD();
   }
 });
@@ -958,28 +1464,29 @@ petsEl.addEventListener('pointermove', e => {
 $('#btnFeed').addEventListener('click', () => {
   const p = S.pets[S.active];
   if (!p) return toast('Hatch your egg first! 🥚');
-  if (p.asleep) return speak(`${SPECIES[p.sp].name} is asleep… shhh 🤫`);
-  if (p.food > 95) { speak(`${SPECIES[p.sp].name} is completely full!!`); return; }
+  if (p.asleep) return speak(`${petName(p)} is asleep… shhh 🤫`);
+  if (p.food > 95) { speak(`${petName(p)} is completely full!!`); return; }
   p.food = clamp(p.food + 30); p.happy = clamp(p.happy + 3);
+  p.fed++; p.xp = (p.xp || 0) + 2;
   const r = stage.getBoundingClientRect();
   particle('🍪', r.width / 2, r.height * .55);
-  buzz(15); renderAll(); save();
+  buzz(15); sCrunch();
+  checkEvolve(p);
+  renderAll(); save();
 });
 
 $('#btnSleep').addEventListener('click', () => {
   const p = S.pets[S.active];
   if (!p) return toast('Hatch your egg first! 🥚');
   p.asleep = !p.asleep;
-  speak(p.asleep ? `${SPECIES[p.sp].name} curls up to sleep… 💤 (dream bubbles incoming!)`
-                 : `${SPECIES[p.sp].name} is awake!`);
+  speak(p.asleep ? `${petName(p)} curls up to sleep… 💤 (dream bubbles incoming!)`
+                 : `${petName(p)} is awake!`);
   renderAll(); save();
 });
 
-$('#btnEgg').addEventListener('click', () => {
-  if (S.giggles < EGG_COST) return toast(`Need ${EGG_COST} ✨ — catch more giggles!`);
-  S.giggles -= EGG_COST; S.egg = { taps: 0 };
-  toast('A mysterious egg appeared! Tap it! 🥚');
-  renderAll(); save();
+$('#btnSound').addEventListener('click', () => {
+  S.sound = !S.sound; renderHUD(); save();
+  if (S.sound) sChirp();
 });
 
 /* ---------- phone playground toggle ---------- */
@@ -990,45 +1497,129 @@ $('#btnPhone').addEventListener('click', () => {
   renderStage(); renderAll(true); save();
 });
 
-// tap a chomped app to fix it
+// tap a chomped app to fix it; tap Games for the sparkle frenzy
+let frenzyUntil = 0, frenzyCooldown = 0;
 $('#scenery').addEventListener('click', e => {
   const ic = e.target.closest('.appIcon');
-  if (!ic || !ic.classList.contains('bitten')) return;
-  bitten.delete(+ic.dataset.app);
-  ic.classList.remove('bitten');
-  toast(`You fixed ${APPS[+ic.dataset.app][1]}! 🔧`);
-  buzz(12);
+  if (!ic) return;
+  const i = +ic.dataset.app;
+  if (ic.classList.contains('bitten')) {
+    bitten.delete(i);
+    ic.classList.remove('bitten');
+    toast(`You fixed ${APPS[i][1]}! 🔧`);
+    buzz(12); sPop();
+    return;
+  }
+  if (i === GAMES_ICON) {
+    const now = Date.now();
+    if (now < frenzyCooldown) return toast('Games needs a minute to recharge… 🎮');
+    frenzyUntil = now + 12000; frenzyCooldown = now + 70000;
+    notify('🎮 Games: SPARKLE FRENZY! Catch them all!');
+    sFanfare();
+  }
 });
 
-/* ---------- environment modal ---------- */
-$('#btnEnv').addEventListener('click', () => { renderEnvList(); $('#modal').classList.add('open'); });
+/* ---------- modals (env / egg / album / weather) ---------- */
+
+function openModal(html) { $('#modalBox').innerHTML = html; $('#modal').classList.add('open'); }
 $('#modal').addEventListener('click', e => { if (e.target === $('#modal')) $('#modal').classList.remove('open'); });
 
-function renderEnvList() {
-  $('#envList').innerHTML = Object.entries(ENVS).map(([k, v]) => {
-    const owned = S.unlocked.includes(k), sel = S.env === k;
+$('#btnEnv').addEventListener('click', () => {
+  openModal(`<h2>Choose a home 🏞️</h2>` + Object.entries(ENVS).map(([k, v]) => {
+    const owned = S.unlocked.includes(k), sel = S.env === k && S.mode === 'home';
     const st = sel ? 'current home' : owned ? 'tap to move in' : `unlock for ${v.cost} ✨`;
-    return `<button class="envCard ${sel ? 'sel' : ''}" data-k="${k}">
+    return `<button class="rowCard ${sel ? 'sel' : ''}" data-k="${k}">
       <span class="preview pv-${k}"></span>
       <span><div class="nm">${v.emoji} ${v.name}</div><div class="st">${st}</div></span></button>`;
+  }).join(''));
+});
+
+$('#btnEgg').addEventListener('click', () => {
+  const kp = totalKeepsakes();
+  openModal(`<h2>Get an egg 🥚</h2>
+    <button class="rowCard" data-egg="common">
+      <span class="preview">🥚</span>
+      <span><div class="nm">Mystery egg — ${EGG_COST} ✨</div>
+      <div class="st">Hatches a common Mythling</div></span></button>
+    <button class="rowCard" data-egg="rare">
+      <span class="preview">✨</span>
+      <span><div class="nm">Rare egg — ${RARE_EGG_COST} ✨ + ${RARE_KEEPSAKES} keepsakes</div>
+      <div class="st">Hatches a RARE Mythling · you have ${kp} keepsake${kp === 1 ? '' : 's'}</div></span></button>`);
+});
+
+$('#btnAlbum').addEventListener('click', () => {
+  const cards = Object.keys(SPECIES).map(sp => {
+    const known = S.album.includes(sp);
+    const fake = { sp, food: 80, happy: 80, energy: 80, asleep: false };
+    const [em] = KEEPSAKE[sp];
+    const cur = S.pets.find(p => p.sp === sp);
+    const badge = cur && cur.form ? ' ' + FORM_BADGE[cur.form] : '';
+    return `<div class="albCard ${known ? '' : 'unknown'}">
+      ${creatureSVG(fake)}
+      <div class="an">${known ? SPECIES[sp].name + badge : '???'}</div>
+      <div class="ak">${known ? SPECIES[sp].flavor : (SPECIES[sp].rare ? '✨ rare' : 'common')}</div>
+      <div class="ak">${em} ×${S.keepsakes[sp] || 0}</div></div>`;
   }).join('');
-}
-$('#envList').addEventListener('click', e => {
-  const card = e.target.closest('.envCard'); if (!card) return;
-  const k = card.dataset.k;
-  if (!S.unlocked.includes(k)) {
-    if (S.giggles < ENVS[k].cost) return toast(`Need ${ENVS[k].cost} ✨ for ${ENVS[k].name}!`);
-    S.giggles -= ENVS[k].cost; S.unlocked.push(k);
-    toast(`🏡 ${ENVS[k].name} unlocked!`);
+  openModal(`<h2>Creature album 📖 · streak day ${S.streak || 1}</h2><div class="albGrid">${cards}</div>`);
+});
+
+$('#btnWx').addEventListener('click', () => {
+  openModal(`<h2>Weather 🌦️ · now: ${wxState.label}</h2>` + Object.entries(WX_PRESETS).map(([k, v]) =>
+    `<button class="rowCard ${S.wxMode === k ? 'sel' : ''}" data-wx="${k}">
+      <span class="preview">${v.emoji}</span>
+      <span><div class="nm">${v.label}</div>
+      <div class="st">${k === 'auto' ? 'Uses your location for live real-world weather' : 'Set the vibe manually'}</div></span></button>`
+  ).join(''));
+});
+
+$('#modalBox').addEventListener('click', e => {
+  const env = e.target.closest('[data-k]');
+  if (env) {
+    const k = env.dataset.k;
+    if (!S.unlocked.includes(k)) {
+      if (S.giggles < ENVS[k].cost) return toast(`Need ${ENVS[k].cost} ✨ for ${ENVS[k].name}!`);
+      S.giggles -= ENVS[k].cost; S.unlocked.push(k);
+      toast(`🏡 ${ENVS[k].name} unlocked!`); sFanfare();
+    }
+    S.env = k; S.mode = 'home';
+    $('#modal').classList.remove('open');
+    renderStage(); renderAll(true); save();
+    return;
   }
-  S.env = k; S.mode = 'home';
-  $('#modal').classList.remove('open');
-  renderStage(); renderAll(true); save();
+  const egg = e.target.closest('[data-egg]');
+  if (egg) {
+    const rare = egg.dataset.egg === 'rare';
+    if (rare) {
+      if (S.giggles < RARE_EGG_COST) return toast(`Need ${RARE_EGG_COST} ✨!`);
+      if (totalKeepsakes() < RARE_KEEPSAKES) return toast(`Need ${RARE_KEEPSAKES} keepsakes — pets shed them over time!`);
+      S.giggles -= RARE_EGG_COST;
+      let left = RARE_KEEPSAKES;
+      Object.keys(S.keepsakes).sort((a, b) => S.keepsakes[b] - S.keepsakes[a]).forEach(k => {
+        const take = Math.min(left, S.keepsakes[k]); S.keepsakes[k] -= take; left -= take;
+      });
+    } else {
+      if (S.giggles < EGG_COST) return toast(`Need ${EGG_COST} ✨ — catch more giggles!`);
+      S.giggles -= EGG_COST;
+    }
+    S.egg = { taps: 0, rare };
+    $('#modal').classList.remove('open');
+    toast(rare ? 'A RARE egg appeared!! Tap it! ✨' : 'A mysterious egg appeared! Tap it! 🥚');
+    renderAll(); save();
+    return;
+  }
+  const wx = e.target.closest('[data-wx]');
+  if (wx) {
+    S.wxMode = wx.dataset.wx;
+    $('#modal').classList.remove('open');
+    if (S.wxMode === 'auto') { fetchAutoWx(); toast('📍 Using your real weather!'); renderHUD(); }
+    else applyWx(WX_PRESETS[S.wxMode].st, WX_PRESETS[S.wxMode].label);
+    save();
+  }
 });
 
 /* ---------- pickups ---------- */
-function spawnPickup(emoji, reward, msg) {
-  if (stage.querySelectorAll('.pickup').length >= 3) return;
+function spawnPickup(emoji, reward, cap) {
+  if (stage.querySelectorAll('.pickup').length >= (cap || 3)) return;
   const b = document.createElement('button');
   b.className = 'pickup'; b.textContent = emoji;
   b.style.left = (10 + Math.random() * 78) + '%';
@@ -1037,14 +1628,82 @@ function spawnPickup(emoji, reward, msg) {
     S.giggles += reward;
     const r = stage.getBoundingClientRect(), br = b.getBoundingClientRect();
     particle('+' + reward + '✨', br.left - r.left, br.top - r.top);
-    b.remove(); buzz(15); renderHUD(); save();
-    if (msg) speak(msg);
+    b.remove(); buzz(15); sPop(); renderHUD(); save();
   }, { once: true });
   stage.appendChild(b);
   setTimeout(() => b.remove(), 8000);
 }
 
-/* ====================== game loop ====================== */
+/* ====================== wandering ====================== */
+
+setInterval(() => {
+  S.pets.forEach(p => {
+    if (p.asleep) { p.tx = p.x; return; }
+    if (p.biteTarget != null) return;
+    if (Math.abs((p.tx ?? p.x) - p.x) < 1 && Math.random() < 0.18) {
+      // storms make everyone huddle near the middle
+      p.tx = wxState.cond === 'storm' ? 38 + Math.random() * 24 : 12 + Math.random() * 76;
+    }
+  });
+}, 1000);
+
+let pawTick = 0;
+setInterval(() => {
+  pawTick++;
+  S.pets.forEach((p, i) => {
+    const el = petsEl.querySelector(`.petCard[data-i="${i}"]`);
+    if (!el) return;
+    const d = (p.tx ?? p.x) - p.x;
+    const speed = p.form === 'zoomy' ? 1.15 : 0.8;
+    if (Math.abs(d) > 0.8 && !p.asleep) {
+      p.x += Math.sign(d) * Math.min(Math.abs(d), speed);
+      p.dir = Math.sign(d) || 1;
+      el.classList.add('walking');
+      el.querySelector('.flipWrap').style.transform = p.dir < 0 ? 'scaleX(-1)' : 'none';
+      // footprints in the playground
+      if (S.mode === 'phone' && pawTick % 12 === 0) {
+        const r = stage.getBoundingClientRect(), br = el.getBoundingClientRect();
+        const s = document.createElement('span');
+        s.className = 'paw'; s.textContent = '🐾';
+        s.style.left = (br.left - r.left + br.width / 2) + 'px';
+        s.style.top = (br.bottom - r.top - 14) + 'px';
+        stage.appendChild(s); setTimeout(() => s.remove(), 3100);
+      }
+    } else {
+      el.classList.remove('walking');
+    }
+    el.style.left = p.x + '%';
+  });
+}, 120);
+
+/* ====================== motion magic (best-effort) ====================== */
+
+let motionReady = false;
+function initMotion() {
+  if (motionReady) return;
+  motionReady = true;
+  const attach = () => addEventListener('devicemotion', e => {
+    const a = e.accelerationIncludingGravity;
+    if (!a) return;
+    const mag = Math.abs(a.x || 0) + Math.abs(a.y || 0) + Math.abs(a.z || 0);
+    if (mag > 42) {
+      const p = S.pets[S.active];
+      if (p && p.asleep) {
+        p.asleep = false;
+        speak(`${petName(p)} woke up dizzy!! 😵‍💫 Gentle shakes only!`);
+        renderAll(true); save();
+      }
+    }
+  });
+  try {
+    if (typeof DeviceMotionEvent !== 'undefined' && DeviceMotionEvent.requestPermission)
+      DeviceMotionEvent.requestPermission().then(r => { if (r === 'granted') attach(); }).catch(() => {});
+    else attach();
+  } catch (e) {}
+}
+addEventListener('pointerdown', () => { ac(); initMotion(); }, { once: true });
+
+/* ====================== playground brain ====================== */
 
 function chompIcon(p, pi, el) {
   const i = +el.dataset.app;
@@ -1057,9 +1716,12 @@ function chompIcon(p, pi, el) {
   particle('🦷', br.left - r.left + br.width / 2, br.top - r.top + br.height / 2);
   particle('nom!', br.left - r.left + br.width, br.top - r.top);
   p.food = clamp(p.food + 8); p.happy = clamp(p.happy + 2);
+  p.xp = (p.xp || 0) + 1;
   speak(rnd(BITES[p.sp]).replace('{app}', APPS[i][1]));
-  buzz([20, 40, 20]);
+  notify(`${APPS[i][0]} ${APPS[i][1]}: please stop eating me.`);
+  buzz([20, 40, 20]); sCrunch();
   p.biteTarget = null;
+  checkEvolve(p);
   save();
 }
 
@@ -1072,6 +1734,7 @@ function tickPlayground() {
       if (el) el.classList.remove('bitten');
     }
   }
+  if (now < frenzyUntil) spawnPickup('✨', 1, 8);
   S.pets.forEach((p, pi) => {
     if (p.asleep) { p.biteTarget = null; return; }
     if (p.biteTarget == null && p.food < 70 && Math.random() < 0.15) {
@@ -1090,9 +1753,11 @@ function tickPlayground() {
   });
 }
 
+/* ====================== game loop ====================== */
+
 let dramaTimer = 0;
 setInterval(() => {
-  S.pets.forEach(p => tickPet(p, 1));
+  S.pets.forEach(p => tickPet(p, 1, inAffinity(p)));
   if (S.mode === 'phone') tickPlayground();
 
   if (S.pets.some(p => !p.asleep && p.happy > 65) && Math.random() < 0.09)
@@ -1100,18 +1765,43 @@ setInterval(() => {
   if (S.pets.some(p => p.asleep) && Math.random() < 0.05)
     spawnPickup('💭', 3);
 
+  // keepsake drops (rare, from happy pets)
+  S.pets.forEach(p => {
+    if (!p.asleep && p.happy > 55 && Math.random() < 0.0022) grantKeepsake(p.sp, true);
+  });
+
+  // weather ambience
+  if (wxState.cold) {
+    S.pets.forEach((p, i) => {
+      if (!p.asleep && Math.random() < 0.1) {
+        const pp = petHeadPos(i);
+        if (pp) breathPuff(pp.x + 14, pp.y);
+      }
+    });
+    if (!fireLit && S.mode === 'home' && S.pets.some(p => p.sp === 'dragon')) {
+      fireLit = true;
+      speak(`${petName(S.pets.find(p => p.sp === 'dragon'))} lit a cozy campfire! 🔥 Everyone gather round.`);
+    }
+  }
+  if (wxState.hot && Math.random() < 0.04) {
+    const i = S.pets.findIndex(p => !p.asleep);
+    if (i >= 0) { const pp = petHeadPos(i); if (pp) particle('💧', pp.x + 18, pp.y); }
+  }
+  if (wxState.cond === 'storm' && Math.random() < 0.03) { sRumble(); buzz(50); }
+
   // cuddles when two happy pets wander near each other
   const happyPets = S.pets.filter(p => !p.asleep && p.happy > 60);
   for (let i = 0; i < happyPets.length; i++)
     for (let j = i + 1; j < happyPets.length; j++) {
       const a = happyPets[i], b = happyPets[j];
       if (Math.abs(a.x - b.x) < 16 && Math.random() < 0.06) {
-        speak(rnd(CUDDLES).replace('{a}', SPECIES[a.sp].name).replace(/\{b\}/g, SPECIES[b.sp].name));
+        speak(rnd(CUDDLES).replace('{a}', petName(a)).replace(/\{b\}/g, petName(b)));
         const r = stage.getBoundingClientRect();
         particle('💞', r.width * (a.x + b.x) / 200, r.height * .55);
       }
     }
 
+  // drama & idle chatter (weather-aware)
   if (++dramaTimer >= 18) {
     dramaTimer = 0;
     const p = S.pets[S.active];
@@ -1120,6 +1810,9 @@ setInterval(() => {
       if (p.food < 40) speak(rnd(L.hungry));
       else if (p.energy < 30) speak(rnd(L.tired));
       else if (p.happy < 40) speak(rnd(L.sad));
+      else if (wxState.cold && Math.random() < .35 && L.cold) speak(rnd(L.cold));
+      else if (wxState.hot && Math.random() < .35 && L.hot) speak(rnd(L.hot));
+      else if (inAffinity(p) && Math.random() < .25) speak(`${petName(p)} LOVES it here. ♥`);
       else if (p.happy > 75 && Math.random() < .5) speak(rnd(L.idle));
     }
   }
@@ -1130,8 +1823,13 @@ setInterval(() => {
 
 /* ====================== boot ====================== */
 
-renderStage(); renderAll(true);
+renderStage(); renderWx(); renderAll(true);
 setInterval(renderStage, 60000);
+dailyCheck();
+
+if (S.wxMode === 'auto') fetchAutoWx();
+else applyWx(WX_PRESETS[S.wxMode].st, WX_PRESETS[S.wxMode].label);
+setInterval(() => { if (S.wxMode === 'auto') fetchAutoWx(); }, 1800000);
 
 if (!S.greeted) {
   S.greeted = true; save();
