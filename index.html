@@ -261,6 +261,9 @@
   }
   .petCard.active { width: min(46vw, 205px); z-index: 5; }
   .petCard:not(.active) { width: min(27vw, 118px); opacity: .95; z-index: 3; }
+  /* umbrella art includes the canopy above the pet — widen so the pet itself stays the same size */
+  .petCard.brolly.active { width: min(63vw, 280px); }
+  .petCard.brolly:not(.active) { width: min(37vw, 162px); }
   .flipWrap { display: block; transition: transform .25s; }
   .petCard svg.creature { width: 100%; height: auto; display: block; }
   .petCard .creature { animation: bob 3.2s ease-in-out infinite; }
@@ -1398,11 +1401,13 @@ function renderStage() {
 
 function renderPets() {
   let html = '';
+  const rainyNow = (wxState.cond === 'rain' || wxState.cond === 'storm') && !sheltered();
   S.pets.forEach((p, i) => {
     const badge = p.form ? FORM_BADGE[p.form] + ' ' : '';
     const aff = inAffinity(p) ? ' ♥' : '';
     const flip = SPRITES[p.sp] ? p.dir > 0 : p.dir < 0;   // sprite walk cycles face left natively
-    html += `<div class="petCard sp-${p.sp} ${i === S.active ? 'active' : ''} ${p.asleep ? 'asleep' : ''}"
+    const brolly = rainyNow && !p.asleep && SPRITES[p.sp] && SPRITES[p.sp].umbrella ? 'brolly' : '';
+    html += `<div class="petCard sp-${p.sp} ${brolly} ${i === S.active ? 'active' : ''} ${p.asleep ? 'asleep' : ''}"
       data-i="${i}" style="left:${p.x}%; bottom:${3 + (i % 3) * 1.5}%">
       <span class="flipWrap" style="transform:${flip ? 'scaleX(-1)' : 'none'}">${creatureSVG(p)}</span>
       <span class="petName">${badge}${petName(p)}${aff}</span></div>`;
