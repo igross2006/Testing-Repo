@@ -178,6 +178,16 @@
   .wxFlash.f2 { animation-delay: 3.4s; animation-duration: 9s; }
   @keyframes flash { 0%,93%,97%,100% { opacity:0; } 94%,96% { opacity:.55; } 95% { opacity:.15; } }
   .heatShimmer { position:absolute; inset:0; background: radial-gradient(ellipse at 50% 15%, #ffb37a22, transparent 60%); }
+  .bolt { position:absolute; top:0; z-index:4; pointer-events:none;
+    filter: drop-shadow(0 0 10px #fff) drop-shadow(0 0 22px #ffe08a);
+    animation: boltFlash .5s ease-out forwards; }
+  @keyframes boltFlash {
+    0% { opacity:0; } 8% { opacity:1; } 28% { opacity:.35; }
+    42% { opacity:1; } 100% { opacity:0; }
+  }
+  .brolly { transform-box: fill-box; transform-origin: center bottom;
+    animation: brollySway 3s ease-in-out infinite alternate; }
+  @keyframes brollySway { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
 
   /* ---------- campfire ---------- */
   .campfire { filter: drop-shadow(0 0 12px #ff9a4d88); }
@@ -690,6 +700,23 @@ function mouth(mood, cx, cy) {
 }
 const zzz = (x, y) => `<text x="${x}" y="${y}" font-size="26" fill="#cfc4e8" font-weight="bold">z&#8202;z</text>`;
 
+function umbrella(baseY, poleLen, color) {
+  const cx = 200, r = 60;
+  let scallops = '';
+  for (let i = 0; i < 5; i++) scallops += ' q -12 13 -24 0';
+  return `<g class="brolly">
+    <path d="M${cx} ${baseY - r + 4} l 0 -12" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
+    <path d="M${cx} ${baseY} L ${cx} ${baseY + poleLen} q 0 16 -16 14" fill="none" stroke="#8a6248" stroke-width="6" stroke-linecap="round"/>
+    <path d="M${cx - r} ${baseY} A ${r} ${r} 0 0 1 ${cx + r} ${baseY}${scallops} z" fill="${color}" opacity=".97"/>
+    <path d="M${cx - r + 14} ${baseY - 16} A ${r} ${r} 0 0 1 ${cx - 6} ${baseY - r + 10}"
+      fill="none" stroke="#ffffff" stroke-width="4" opacity=".45" stroke-linecap="round"/>
+  </g>`;
+}
+const UMBRELLA = {
+  dragon:  [70, 150, '#f7b5d2'], phoenix: [62, 170, '#8ad0ff'], kraken: [72, 160, '#ffd965'],
+  unicorn: [58, 160, '#b8a7f0'], pegasus: [68, 160, '#7fd4a4'], wisp:   [62, 150, '#ff8a5c']
+};
+
 function scarf(cy, w, color) {
   return `
   <ellipse cx="200" cy="${cy}" rx="${w}" ry="14" fill="${color}"/>
@@ -925,6 +952,8 @@ function creatureSVG(p) {
   if (p.form === 'sunny')
     art += `<g fill="#ffd965"><circle cx="120" cy="70" r="4"/><circle cx="286" cy="62" r="3.5"/>
             <circle cx="200" cy="34" r="4.5"/></g>`;
+  if (wxState.cond === 'rain' || wxState.cond === 'storm')
+    art += umbrella(...UMBRELLA[p.sp]);
   const t = p.form === 'chonky' ? 'scale(1.13 .97)' : p.form === 'zoomy' ? 'scale(.94 1.05)' : '';
   const f = p.form === 'moody' ? 'style="filter:saturate(.55) brightness(.92)"' : '';
   return `<svg class="creature" viewBox="0 0 400 410"><defs>${GRADS}</defs>
@@ -1303,7 +1332,7 @@ function renderHUD() {
 
 let lastSig = '';
 function renderAll(force) {
-  const sig = JSON.stringify([S.env, S.mode, S.egg && S.egg.taps, S.active, wxState.cold,
+  const sig = JSON.stringify([S.env, S.mode, S.egg && S.egg.taps, S.active, wxState.cold, wxState.cond,
     S.pets.map(p => [p.sp, p.asleep, creatureMoodSig(p), p.form, p.name, inAffinity(p)])]);
   if (force || sig !== lastSig) { renderPets(); lastSig = sig; }
   renderHUD();
@@ -1331,6 +1360,23 @@ function particle(emoji, x, y) {
   s.className = 'float'; s.textContent = emoji;
   s.style.left = x + 'px'; s.style.top = y + 'px';
   fx.appendChild(s); setTimeout(() => s.remove(), 1300);
+}
+function spawnLightning() {
+  const w = 56, h = 170 + Math.random() * 130;
+  const b = document.createElement('div');
+  b.className = 'bolt';
+  b.style.left = (8 + Math.random() * 76) + '%';
+  b.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <path d="M ${w*.33} 0 L ${w*.75} 0 L ${w*.5} ${h*.4} L ${w*.72} ${h*.4} L ${w*.25} ${h}
+             L ${w*.42} ${h*.52} L ${w*.17} ${h*.52} Z" fill="#fff8d8" stroke="#ffe08a" stroke-width="2"/></svg>`;
+  stage.appendChild(b);
+  setTimeout(() => b.remove(), 650);
+  const f = document.createElement('div');
+  f.style.cssText = 'position:absolute;inset:0;background:#fff;opacity:.45;z-index:4;pointer-events:none;transition:opacity .35s';
+  stage.appendChild(f);
+  requestAnimationFrame(() => f.style.opacity = '0');
+  setTimeout(() => f.remove(), 450);
+  sRumble(); buzz([30, 40, 70]);
 }
 function breathPuff(x, y) {
   const s = document.createElement('span');
@@ -1820,7 +1866,7 @@ setInterval(() => {
     const i = S.pets.findIndex(p => !p.asleep);
     if (i >= 0) { const pp = petHeadPos(i); if (pp) particle('💧', pp.x + 18, pp.y); }
   }
-  if (wxState.cond === 'storm' && Math.random() < 0.03) { sRumble(); buzz(50); }
+  if (wxState.cond === 'storm' && Math.random() < 0.09) spawnLightning();
 
   // cuddles when two happy pets wander near each other
   const happyPets = S.pets.filter(p => !p.asleep && p.happy > 60);
