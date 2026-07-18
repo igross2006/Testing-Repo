@@ -329,6 +329,16 @@
   .spriteBox { display: block; position: relative; }
   .spriteBox img { width: 100%; display: block; -webkit-user-drag: none; user-select: none; }
   .spriteBox .spriteOverlay { position: absolute; left: 0; top: -55%; width: 100%; height: 155%; pointer-events: none; }
+  .spriteBox .spriteZzz {
+    position: absolute; top: -30%; right: 4%; font-size: 1.5rem; pointer-events: none;
+    animation: zzzFloat 2.6s ease-in-out infinite;
+  }
+  @keyframes zzzFloat {
+    0% { opacity: 0; transform: translateY(8px) scale(.8); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-20px) scale(1.2); }
+  }
+  .petCard.asleep .spriteBox img { filter: brightness(.88); }
 
   /* ---------- hatch cinematic ---------- */
   #hatchFx { position:absolute; inset:0; z-index:10; display:none; align-items:center;
@@ -983,6 +993,7 @@ function dragonSprite(p, mood, rainy) {
   const imgT = p.form === 'chonky' ? 'style="transform:scaleX(1.12)"' : '';
   return `<span class="creature spriteBox" data-state="${state}" style="${filt}">
     <img src="${DRAGON_SPRITES[state]}" draggable="false" ${imgT}>
+    ${p.asleep ? '<span class="spriteZzz">💤</span>' : ''}
     ${rainy ? `<svg class="spriteOverlay" viewBox="0 -80 400 480"><defs>${GRADS}</defs>${umbrellaSVG(330, '#f7b5d2')}</svg>` : ''}
   </span>`;
 }

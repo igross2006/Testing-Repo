@@ -1,4 +1,4 @@
-const CACHE = 'mythlings-v12';
+const CACHE = 'mythlings-v13';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg',
   'assets/dragon/idle.png', 'assets/dragon/happy.png', 'assets/dragon/sad.png',
   'assets/dragon/sleep.png', 'assets/dragon/walk1.png', 'assets/dragon/walk2.png',
