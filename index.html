@@ -700,28 +700,25 @@ function mouth(mood, cx, cy) {
 }
 const zzz = (x, y) => `<text x="${x}" y="${y}" font-size="26" fill="#cfc4e8" font-weight="bold">z&#8202;z</text>`;
 
-// Umbrella in two layers: the pole is drawn BEHIND the pet (rising from their
-// side paw, never across the face) and the canopy sits on top, over their head.
-function umbrellaPole(baseY, handY) {
-  const px = 246;
-  return `<g transform="rotate(-10 ${px} ${handY})">
-    <path d="M${px} ${baseY} L ${px} ${handY} q 0 16 -16 14" fill="none" stroke="#8a6248" stroke-width="7" stroke-linecap="round"/>
+// Umbrella held to the pet's right: canopy floats well above the head with a
+// visible pole slanting down PAST the side of the face to a paw-level grip.
+function umbrellaSVG(handY, color) {
+  const cx = 255, r = 58, baseY = 62;
+  let scallops = '';
+  for (let i = 0; i < 5; i++) scallops += ' q -11.6 12 -23.2 0';
+  return `<g class="brolly">
+    <path d="M${cx} ${baseY} L ${cx + 43} ${handY} q 4 14 -12 16" fill="none" stroke="#8a6248" stroke-width="6" stroke-linecap="round"/>
+    <g transform="rotate(-10 ${cx} ${baseY})">
+      <path d="M${cx} ${baseY - r + 6} l 0 -8" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
+      <path d="M${cx - r} ${baseY} A ${r} ${r} 0 0 1 ${cx + r} ${baseY}${scallops} z" fill="${color}" opacity=".97"/>
+      <path d="M${cx - r + 14} ${baseY - 16} A ${r} ${r} 0 0 1 ${cx - 8} ${baseY - r + 10}"
+        fill="none" stroke="#ffffff" stroke-width="4" opacity=".45" stroke-linecap="round"/>
+    </g>
   </g>`;
 }
-function umbrellaCanopy(baseY, handY, color) {
-  const px = 246, r = 56;
-  let scallops = '';
-  for (let i = 0; i < 5; i++) scallops += ' q -11.2 12 -22.4 0';
-  return `<g class="brolly"><g transform="rotate(-10 ${px} ${handY})">
-    <path d="M${px} ${baseY - r + 4} l 0 -12" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
-    <path d="M${px - r} ${baseY} A ${r} ${r} 0 0 1 ${px + r} ${baseY}${scallops} z" fill="${color}" opacity=".97"/>
-    <path d="M${px - r + 15} ${baseY - 17} A ${r} ${r} 0 0 1 ${px - 7} ${baseY - r + 11}"
-      fill="none" stroke="#ffffff" stroke-width="4" opacity=".45" stroke-linecap="round"/>
-  </g></g>`;
-}
 const UMBRELLA = {
-  dragon:  [60, 350, '#f7b5d2'], phoenix: [58, 358, '#8ad0ff'], kraken: [62, 348, '#ffd965'],
-  unicorn: [58, 350, '#b8a7f0'], pegasus: [60, 350, '#7fd4a4'], wisp:   [58, 300, '#ff8a5c']
+  dragon:  [330, '#f7b5d2'], phoenix: [340, '#8ad0ff'], kraken: [330, '#ffd965'],
+  unicorn: [330, '#b8a7f0'], pegasus: [330, '#7fd4a4'], wisp:   [292, '#ff8a5c']
 };
 
 function scarf(cy, w, color) {
@@ -810,35 +807,41 @@ function dragonArt(mood, asleep, cold) {
 }
 
 function phoenixArt(mood, asleep, cold) {
-  const flame = (x, h, w, cls) =>
-    `<path class="flick ${cls}" d="M${x} 118 q ${-w} ${-h*.55} 0 ${-h} q ${w} ${h*.45} 0 ${h} z" fill="url(#gFlame)"/>`;
+  const flame = (x, y, h, w, cls) =>
+    `<path class="flick ${cls}" d="M${x} ${y} q ${-w} ${-h*.55} 0 ${-h} q ${w} ${h*.45} 0 ${h} z" fill="url(#gFlame)"/>`;
   return `
-  <ellipse cx="200" cy="392" rx="95" ry="15" fill="#000" opacity=".18"/>
-  <path d="M148 362 Q 120 392 132 398 Q 156 398 166 376 Z" fill="url(#gFlame)" opacity=".9"/>
-  <path d="M252 362 Q 280 392 268 398 Q 244 398 234 376 Z" fill="url(#gFlame)" opacity=".9"/>
-  ${flame(200, 64, 20, '')}${flame(168, 46, 15, 'f2')}${flame(232, 46, 15, 'f3')}
-  <circle cx="200" cy="250" r="125" fill="url(#gPhx)" stroke="#e0854f" stroke-width="3"/>
+  <ellipse cx="200" cy="392" rx="92" ry="15" fill="#000" opacity=".18"/>
+  <g class="tailWag">
+    ${flame(300, 332, 48, 14, '')}${flame(322, 346, 40, 12, 'f2')}${flame(284, 348, 34, 11, 'f3')}
+  </g>
   <g class="wingF">
-    <path d="M92 260 Q 58 290 78 320 Q 106 310 114 284 Z" fill="#ffd965" stroke="#f2a25c" stroke-width="4" stroke-linejoin="round"/>
-    <path d="M80 296 q 12 4 24 -4 M 76 308 q 12 6 26 -4" fill="none" stroke="#f2a25c" stroke-width="3" opacity=".8"/>
+    <path d="M124 268 Q 76 252 64 210 Q 96 214 112 238 Q 110 220 128 214 Q 138 244 134 272 Z"
+      fill="#ffd965" stroke="#f2a25c" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M86 226 Q 104 244 118 262 M 106 222 Q 116 242 122 258" fill="none" stroke="#f2a25c" stroke-width="2.5" opacity=".7"/>
   </g>
   <g class="wingF R">
-    <path d="M308 260 Q 342 290 322 320 Q 294 310 286 284 Z" fill="#ffd965" stroke="#f2a25c" stroke-width="4" stroke-linejoin="round"/>
-    <path d="M320 296 q -12 4 -24 -4 M 324 308 q -12 6 -26 -4" fill="none" stroke="#f2a25c" stroke-width="3" opacity=".8"/>
+    <path d="M276 268 Q 324 252 336 210 Q 304 214 288 238 Q 290 220 272 214 Q 262 244 266 272 Z"
+      fill="#ffd965" stroke="#f2a25c" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M314 226 Q 296 244 282 262 M 294 222 Q 284 242 278 258" fill="none" stroke="#f2a25c" stroke-width="2.5" opacity=".7"/>
   </g>
-  <ellipse cx="200" cy="308" rx="66" ry="52" fill="url(#gBelly)"/>
-  <path d="M176 266 q 10 10 22 0 M 200 272 q 10 10 22 0 M 186 284 q 10 10 22 0"
-        fill="none" stroke="#e8c98f" stroke-width="3" opacity=".8"/>
-  <ellipse cx="166" cy="376" rx="16" ry="9" fill="#e8874f"/>
-  <ellipse cx="234" cy="376" rx="16" ry="9" fill="#e8874f"/>
-  ${eyes(158, 242, 218, asleep, mood)}
-  ${blushes(126, 274, 252)}
-  <path d="M200 240 l -13 12 q 13 10 26 0 z" fill="#ffb545" stroke="#e8874f" stroke-width="3" stroke-linejoin="round"/>
-  ${cold ? scarf(300, 74, '#8ad0ff') : ''}
-  ${!asleep ? `<g fill="#ffd965"><circle class="ember" cx="120" cy="150" r="4"/>
-    <circle class="ember e2" cx="286" cy="160" r="3.5"/></g>` : ''}
-  ${asleep ? zzz(292, 140) : (mood === 'sad'
-      ? `<path d="M184 276 Q 200 266 216 276" fill="none" stroke="#3a2e3d" stroke-width="4.5" stroke-linecap="round"/>` : '')}`;
+  <ellipse cx="200" cy="305" rx="70" ry="62" fill="url(#gPhx)" stroke="#e0854f" stroke-width="3"/>
+  <ellipse cx="200" cy="320" rx="46" ry="40" fill="url(#gBelly)"/>
+  <path d="M180 292 q 10 10 20 0 M 202 298 q 10 10 20 0 M 188 310 q 10 10 20 0"
+    fill="none" stroke="#e8c98f" stroke-width="3" opacity=".8"/>
+  <path d="M168 364 l 0 16 M 161 380 l 7 -5 l 7 5 M 232 364 l 0 16 M 225 380 l 7 -5 l 7 5"
+    stroke="#e8874f" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <circle cx="200" cy="175" r="76" fill="url(#gPhx)" stroke="#e0854f" stroke-width="3"/>
+  ${flame(200, 104, 52, 16, '')}${flame(174, 108, 38, 12, 'f2')}${flame(226, 108, 38, 12, 'f3')}
+  <path d="M128 178 q -18 -6 -22 -22 q 16 -2 26 8 z" fill="#ffb37a" stroke="#e0854f" stroke-width="3"/>
+  <path d="M272 178 q 18 -6 22 -22 q -16 -2 -26 8 z" fill="#ffb37a" stroke="#e0854f" stroke-width="3"/>
+  ${eyes(162, 238, 172, asleep, mood)}
+  ${blushes(132, 268, 206)}
+  <path d="M200 196 l -15 13 q 15 12 30 0 z" fill="#ffb545" stroke="#e8874f" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M192 216 q 8 6 16 0" fill="none" stroke="#e8874f" stroke-width="2.5"/>
+  ${cold ? scarf(254, 62, '#8ad0ff') : ''}
+  ${!asleep ? `<g fill="#ffd965"><circle class="ember" cx="112" cy="140" r="4"/>
+    <circle class="ember e2" cx="290" cy="150" r="3.5"/></g>` : ''}
+  ${asleep ? zzz(284, 108) : ''}`;
 }
 
 function krakenArt(mood, asleep, cold) {
@@ -959,10 +962,8 @@ function creatureSVG(p) {
   if (p.form === 'sunny')
     art += `<g fill="#ffd965"><circle cx="120" cy="70" r="4"/><circle cx="286" cy="62" r="3.5"/>
             <circle cx="200" cy="34" r="4.5"/></g>`;
-  if (wxState.cond === 'rain' || wxState.cond === 'storm') {
-    const [baseY, handY, uc] = UMBRELLA[p.sp];
-    art = umbrellaPole(baseY, handY) + art + umbrellaCanopy(baseY, handY, uc);
-  }
+  if (wxState.cond === 'rain' || wxState.cond === 'storm')
+    art += umbrellaSVG(...UMBRELLA[p.sp]);
   const t = p.form === 'chonky' ? 'scale(1.13 .97)' : p.form === 'zoomy' ? 'scale(.94 1.05)' : '';
   const f = p.form === 'moody' ? 'style="filter:saturate(.55) brightness(.92)"' : '';
   return `<svg class="creature" viewBox="0 0 400 410"><defs>${GRADS}</defs>
