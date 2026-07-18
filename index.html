@@ -703,16 +703,16 @@ const zzz = (x, y) => `<text x="${x}" y="${y}" font-size="26" fill="#cfc4e8" fon
 // Umbrella held to the pet's right: canopy floats well above the head with a
 // visible pole slanting down PAST the side of the face to a paw-level grip.
 function umbrellaSVG(handY, color) {
-  const cx = 255, r = 58, baseY = 62;
+  const cx = 240, r = 85, baseY = 30;   // big canopy, drawn in the extra headroom above the pet
   let scallops = '';
-  for (let i = 0; i < 5; i++) scallops += ' q -11.6 12 -23.2 0';
+  for (let i = 0; i < 5; i++) scallops += ' q -17 14 -34 0';
   return `<g class="brolly">
-    <path d="M${cx} ${baseY} L ${cx + 43} ${handY} q 4 14 -12 16" fill="none" stroke="#8a6248" stroke-width="6" stroke-linecap="round"/>
-    <g transform="rotate(-10 ${cx} ${baseY})">
-      <path d="M${cx} ${baseY - r + 6} l 0 -8" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
+    <path d="M${cx} ${baseY} L ${cx + 58} ${handY} q 4 14 -12 16" fill="none" stroke="#8a6248" stroke-width="6" stroke-linecap="round"/>
+    <g transform="rotate(-8 ${cx} ${baseY})">
+      <path d="M${cx} ${baseY - r + 6} l 0 -9" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
       <path d="M${cx - r} ${baseY} A ${r} ${r} 0 0 1 ${cx + r} ${baseY}${scallops} z" fill="${color}" opacity=".97"/>
-      <path d="M${cx - r + 14} ${baseY - 16} A ${r} ${r} 0 0 1 ${cx - 8} ${baseY - r + 10}"
-        fill="none" stroke="#ffffff" stroke-width="4" opacity=".45" stroke-linecap="round"/>
+      <path d="M${cx - r + 18} ${baseY - 22} A ${r} ${r} 0 0 1 ${cx - 10} ${baseY - r + 12}"
+        fill="none" stroke="#ffffff" stroke-width="5" opacity=".45" stroke-linecap="round"/>
     </g>
   </g>`;
 }
@@ -962,11 +962,12 @@ function creatureSVG(p) {
   if (p.form === 'sunny')
     art += `<g fill="#ffd965"><circle cx="120" cy="70" r="4"/><circle cx="286" cy="62" r="3.5"/>
             <circle cx="200" cy="34" r="4.5"/></g>`;
-  if (wxState.cond === 'rain' || wxState.cond === 'storm')
-    art += umbrellaSVG(...UMBRELLA[p.sp]);
+  const rainy = wxState.cond === 'rain' || wxState.cond === 'storm';
+  if (rainy) art += umbrellaSVG(...UMBRELLA[p.sp]);
   const t = p.form === 'chonky' ? 'scale(1.13 .97)' : p.form === 'zoomy' ? 'scale(.94 1.05)' : '';
   const f = p.form === 'moody' ? 'style="filter:saturate(.55) brightness(.92)"' : '';
-  return `<svg class="creature" viewBox="0 0 400 410"><defs>${GRADS}</defs>
+  const vb = rainy ? '0 -70 400 480' : '0 0 400 410';   // headroom for the big canopy
+  return `<svg class="creature" viewBox="${vb}"><defs>${GRADS}</defs>
     <g transform="translate(200 205) ${t} translate(-200 -205)" ${f}>${art}</g></svg>`;
 }
 
