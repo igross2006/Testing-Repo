@@ -47,7 +47,8 @@
   #scenery svg { display: block; }
   #wx { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
   #stage.env-phone  { background: linear-gradient(180deg,#20194a 0%,#3a2c66 48%,#241f3a 100%); }
-  #stage.env-meadow { background: linear-gradient(180deg,#8fd0ff 0%,#c8ecff 40%,#e8f9ff 52%,#a8dd8e 52%,#8fce77 100%); }
+  #stage.env-meadow { background: url(assets/bg/meadow-sunny.webp) center / cover no-repeat,
+                                  linear-gradient(180deg,#8fd0ff 0%,#c8ecff 40%,#e8f9ff 52%,#a8dd8e 52%,#8fce77 100%); }
   #stage.env-grove  { background: linear-gradient(180deg,#131033 0%,#282052 46%,#3a2c66 56%,#1f3a2d 56%,#14281d 100%); }
   #stage.env-cove   { background: linear-gradient(180deg,#6ecbe8 0%,#aee6f2 38%,#d8f4f6 50%,#7fd8e8 50%,#a9e6ef 62%,#f6e3b0 62%,#eed49a 100%); }
   #stage.env-cavern { background: linear-gradient(180deg,#1c1433 0%,#2e2050 44%,#3d2a63 56%,#241a3e 56%,#180f2c 100%); }
@@ -1184,21 +1185,27 @@ function scenery(env) {
   const sunHtml = (gloom || snowy) ? '' :
     `<div class="deco sun"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>`;
   if (env === 'meadow') {
-    out = `${sunHtml}
-      <div class="deco cloud ${cloudMod}" style="top:10%; animation-duration:46s; animation-delay:-8s"></div>
-      <div class="deco cloud ${cloudMod}" style="top:22%; animation-duration:64s; animation-delay:-30s; transform:scale(.7); opacity:.85"></div>
-      <div class="deco cloud ${cloudMod}" style="top:5%;  animation-duration:80s; animation-delay:-55s; transform:scale(.5); opacity:.7"></div>`;
-    out += pos(fluffyTree(1, false), 'bottom:34%; left:2%;');
-    out += pos(fluffyTree(.65, false), 'bottom:38%; right:4%; opacity:.9;');
-    if (!snowy) {
-      const fcols = ['#f79ec0', '#ffd965', '#b8a7f0', '#ff8a5c', '#f7c9d8'];
-      [6, 18, 34, 58, 74, 88].forEach((x, i) =>
-        { out += pos(`<span class="sway" style="display:inline-block; animation-delay:${i * .4}s">${flower(fcols[i % 5])}</span>`, `bottom:${5 + (i % 3) * 9}%; left:${x}%;`); });
-    }
-    [12, 44, 66, 92].forEach((x, i) => { out += pos(grassTuft(), `bottom:${3 + (i % 2) * 13}%; left:${x}%; opacity:.9;`); });
     if (!gloom && !snowy) {
+      // sunny: painted backdrop does the scenery — just add living touches on top
+      out = `${sunHtml}
+        <div class="deco cloud" style="top:12%; animation-duration:70s; animation-delay:-20s; opacity:.8"></div>
+        <div class="deco cloud" style="top:6%; animation-duration:95s; animation-delay:-60s; transform:scale(.6); opacity:.65"></div>`;
       out += pos(`<span class="butterfly" style="display:inline-block">${butterflySVG('#f79ec0','#ffc7dd')}</span>`, 'bottom:30%; left:14%;');
       out += pos(`<span class="butterfly" style="display:inline-block; animation-delay:-8s">${butterflySVG('#8ad0ff','#c9ecff')}</span>`, 'bottom:38%; left:52%;');
+    } else {
+      // bad weather: procedural scene until painted variants exist
+      out = `
+        <div class="deco cloud ${cloudMod}" style="top:10%; animation-duration:46s; animation-delay:-8s"></div>
+        <div class="deco cloud ${cloudMod}" style="top:22%; animation-duration:64s; animation-delay:-30s; transform:scale(.7); opacity:.85"></div>
+        <div class="deco cloud ${cloudMod}" style="top:5%;  animation-duration:80s; animation-delay:-55s; transform:scale(.5); opacity:.7"></div>`;
+      out += pos(fluffyTree(1, false), 'bottom:34%; left:2%;');
+      out += pos(fluffyTree(.65, false), 'bottom:38%; right:4%; opacity:.9;');
+      if (!snowy) {
+        const fcols = ['#f79ec0', '#ffd965', '#b8a7f0', '#ff8a5c', '#f7c9d8'];
+        [6, 18, 34, 58, 74, 88].forEach((x, i) =>
+          { out += pos(`<span class="sway" style="display:inline-block; animation-delay:${i * .4}s">${flower(fcols[i % 5])}</span>`, `bottom:${5 + (i % 3) * 9}%; left:${x}%;`); });
+      }
+      [12, 44, 66, 92].forEach((x, i) => { out += pos(grassTuft(), `bottom:${3 + (i % 2) * 13}%; left:${x}%; opacity:.9;`); });
     }
   } else if (env === 'grove') {
     out = `<div class="deco moon"><i style="top:12px;left:14px;width:11px;height:11px"></i><i style="top:30px;left:30px;width:7px;height:7px"></i><i style="top:16px;left:36px;width:5px;height:5px"></i></div>
