@@ -1,4 +1,4 @@
-const CACHE = 'mythlings-v14';
+const CACHE = 'mythlings-v15';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg',
   'assets/bg/meadow-sunny.webp'];
 
