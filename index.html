@@ -1361,16 +1361,7 @@ function scenery(env) {
 let wxState = { cond: 'clear', cold: false, hot: false, label: 'Clear' };
 let fireLit = false, snowmanUp = false;
 
-const WX_PRESETS = {
-  auto:  { label: 'Auto (my location)', emoji: '📍' },
-  clear: { label: 'Sunny',    emoji: '☀️', st: { cond:'clear', cold:false, hot:false } },
-  cloudy:{ label: 'Cloudy',   emoji: '☁️', st: { cond:'cloudy', cold:false, hot:false } },
-  rain:  { label: 'Rainy',    emoji: '🌧️', st: { cond:'rain', cold:false, hot:false } },
-  storm: { label: 'Stormy',   emoji: '⛈️', st: { cond:'storm', cold:false, hot:false } },
-  snow:  { label: 'Snowy',    emoji: '❄️', st: { cond:'snow', cold:true, hot:false } },
-  heat:  { label: 'Heat wave',emoji: '🥵', st: { cond:'clear', cold:false, hot:true } },
-  chill: { label: 'Cold snap',emoji: '🥶', st: { cond:'clear', cold:true, hot:false } }
-};
+const WX_EMOJI = { clear: '☀️', cloudy: '☁️', rain: '🌧️', storm: '⛈️', snow: '❄️', fog: '🌫️' };
 
 function wxFromCode(code, temp) {
   let cond = 'clear';
@@ -1500,7 +1491,7 @@ function renderHUD() {
   $('#giggles').textContent = Math.floor(S.giggles);
   $('#btnEgg').hidden = !(S.pets.length < MAX_PETS && !S.egg && S.pets.length > 0);
   $('#btnSound').textContent = S.sound ? '🔊' : '🔇';
-  $('#btnWx').textContent = S.wxMode === 'auto' ? '🌦️' : WX_PRESETS[S.wxMode].emoji;
+  $('#btnWx').textContent = WX_EMOJI[wxState.cond] || '🌦️';
   const p = S.pets[S.active];
   $('#statPanel').hidden = !p;
   if (p) {
@@ -1637,6 +1628,29 @@ $('#petTabs').addEventListener('click', e => {
   renderAll(true); save();
 });
 
+// double-tap trick: the pet shows off its special with a burst of joy
+function doTrick(i) {
+  const p = S.pets[i];
+  const now = Date.now();
+  if (!p || p.asleep || now < (p._trickAt || 0)) return;
+  p._trickAt = now + 8000;
+  p.happy = clamp(p.happy + 3); p.xp = (p.xp || 0) + 1;
+  const card = petsEl.querySelector(`.petCard[data-i="${i}"]`);
+  const box = card && card.querySelector('.spriteBox');
+  const SP = box && SPRITES[box.dataset.sp];
+  if (SP) {
+    box.dataset.busy = '1';
+    const im = box.querySelector('img');
+    im.src = SP.fire;
+    setTimeout(() => { delete box.dataset.busy; im.src = SP[box.dataset.state]; }, 900);
+  }
+  const pp = petHeadPos(i);
+  if (pp) burst(pp.x, pp.y);
+  sFanfare(); buzz([20, 40, 20]);
+  speak(`${petName(p)} shows off a trick!! ✨`);
+  checkEvolve(p); save();
+}
+
 petsEl.addEventListener('click', e => {
   const egg = e.target.closest('#eggCard');
   if (egg) return tapEgg(egg);
@@ -1644,12 +1658,36 @@ petsEl.addEventListener('click', e => {
   if (!card) return;
   const i = +card.dataset.i;
   if (i !== S.active) { S.active = i; renderAll(true); save(); return; }
+  const p = S.pets[i];
   // tap the active pet's name pill to rename
   if (e.target.closest('.petName')) {
-    const p = S.pets[i];
     const n = prompt(`Rename ${petName(p)}?`, petName(p));
     if (n && n.trim()) { p.name = n.trim().slice(0, 14); renderAll(true); save(); }
+    return;
   }
+  // tap reactions on the pet itself
+  if (p.asleep) { speak(`${petName(p)} mumbles… five more minutes 💤`); return; }
+  const now = Date.now();
+  if (now - (p._tap || 0) < 350) { p._tap = 0; doTrick(i); return; }
+  p._tap = now;
+  sChirp(); buzz(8);
+  const r = stage.getBoundingClientRect();
+  particle(rnd(['💗', '✨', '🎵']), e.clientX - r.left, e.clientY - r.top);
+  if (Math.random() < .3) speak(rnd(SPECIES[p.sp].lines.idle));
+});
+
+// tap open ground and the active pet trots over
+stage.addEventListener('click', e => {
+  if (e.target.closest('.petCard, .eggCard, .pickup, .appIcon, #miniGame, #petTabs')) return;
+  const p = S.pets[S.active];
+  if (!p || p.asleep) return;
+  const r = stage.getBoundingClientRect();
+  const x = ((e.clientX - r.left) / r.width) * 100;
+  if (x < 4 || x > 96) return;
+  p.tx = Math.max(12, Math.min(88, x));
+  p.biteTarget = null;
+  particle('📍', e.clientX - r.left, e.clientY - r.top);
+  sPop();
 });
 
 let hatching = false;
@@ -1835,14 +1873,10 @@ $('#btnAlbum').addEventListener('click', () => {
   openModal(`<h2>Creature album 📖 · streak day ${S.streak || 1}</h2><div class="albGrid">${cards}</div>`);
 });
 
+// weather is always your real local weather — the chip shows it and taps refresh it
 $('#btnWx').addEventListener('click', () => {
-  if (S.wxMode === 'auto') fetchAutoWx();   // refresh on open so the menu shows current truth
-  openModal(`<h2>Weather 🌦️ · now: ${wxState.label}</h2>` + Object.entries(WX_PRESETS).map(([k, v]) =>
-    `<button class="rowCard ${S.wxMode === k ? 'sel' : ''}" data-wx="${k}">
-      <span class="preview">${v.emoji}</span>
-      <span><div class="nm">${v.label}</div>
-      <div class="st">${k === 'auto' ? ('Uses your location · ' + (wxAutoStatus || 'not updated yet — tap to retry')) : 'Set the vibe manually'}</div></span></button>`
-  ).join(''));
+  toast(wxAutoStatus ? `🌦️ ${wxAutoStatus}` : '📍 Checking your local weather…');
+  fetchAutoWx(true);
 });
 
 $('#modalBox').addEventListener('click', e => {
@@ -1885,14 +1919,6 @@ $('#modalBox').addEventListener('click', e => {
     $('#modal').classList.remove('open');
     ({ snack: startSnack, bubble: startBubble, pairs: startPairs })[gm.dataset.game]();
     return;
-  }
-  const wx = e.target.closest('[data-wx]');
-  if (wx) {
-    S.wxMode = wx.dataset.wx;
-    $('#modal').classList.remove('open');
-    if (S.wxMode === 'auto') { fetchAutoWx(true); toast('📍 Checking your real weather…'); renderHUD(); }
-    else applyWx(WX_PRESETS[S.wxMode].st, WX_PRESETS[S.wxMode].label);
-    save();
   }
 });
 
@@ -2343,9 +2369,9 @@ setInterval(renderStage, 60000);
 dailyCheck();
 new Set(S.pets.map(p => p.sp)).forEach(preloadSprites);
 
-if (S.wxMode === 'auto') fetchAutoWx();
-else applyWx(WX_PRESETS[S.wxMode].st, WX_PRESETS[S.wxMode].label);
-setInterval(() => { if (S.wxMode === 'auto') fetchAutoWx(); }, 1800000);
+S.wxMode = 'auto';   // weather always mirrors the real world now
+fetchAutoWx();
+setInterval(fetchAutoWx, 1800000);
 
 if (!S.greeted) {
   S.greeted = true; save();
