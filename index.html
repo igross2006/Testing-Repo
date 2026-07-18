@@ -58,6 +58,20 @@
     background: rgba(20,16,50,.32); pointer-events: none; z-index: 4;
   }
 
+  /* weather-modified skies (sunny environments go grey / dark / wintry) */
+  #stage.env-meadow.wx-grey  { background: linear-gradient(180deg,#93a0b5 0%,#b9c2d1 40%,#cfd5de 52%,#93b285 52%,#7d9c70 100%); }
+  #stage.env-meadow.wx-storm { background: linear-gradient(180deg,#525c70 0%,#75808f 40%,#8e97a6 52%,#6d8a63 52%,#597552 100%); }
+  #stage.env-meadow.wx-snowy { background: linear-gradient(180deg,#aeb9cc 0%,#d5dce8 40%,#e8ecf3 52%,#e6edf4 52%,#d2ddE8 100%); }
+  #stage.env-cove.wx-grey    { background: linear-gradient(180deg,#8fa4b0 0%,#b4c4cc 38%,#ccd7dc 50%,#7fa8b5 50%,#93b8c2 62%,#d8cba8 62%,#c9bc98 100%); }
+  #stage.env-cove.wx-storm   { background: linear-gradient(180deg,#4f5e6e 0%,#71818f 38%,#87979f 50%,#4f7382 50%,#628693 62%,#a89c80 62%,#998d73 100%); }
+  #stage.env-cove.wx-snowy   { background: linear-gradient(180deg,#b3bfd0 0%,#d8dfe9 38%,#e9edf3 50%,#a5c4cf 50%,#bcd6de 62%,#e9e4d5 62%,#ddd8c9 100%); }
+  #stage.env-hollow.wx-grey  { background: linear-gradient(180deg,#3a4442 0%,#525f52 46%,#68765f 56%,#46543f 56%,#374233 100%); }
+  #stage.env-hollow.wx-storm { background: linear-gradient(180deg,#2c3434 0%,#3f4a41 46%,#4f5a4a 56%,#374233 56%,#2b3328 100%); }
+  #stage.env-hollow.wx-snowy { background: linear-gradient(180deg,#8fa0a4 0%,#b8c5c4 46%,#d5dcd8 56%,#dfe6e2 56%,#c8d2cc 100%); }
+  .greyCloud { filter: brightness(.72) saturate(.5); }
+  .darkCloud { filter: brightness(.5) saturate(.4); }
+  .paleCloud { filter: brightness(.95) saturate(.3); opacity:.9; }
+
   .deco { position: absolute; }
 
   .sun { top: 6%; right: 8%; width: 64px; height: 64px; }
@@ -1069,20 +1083,28 @@ function scenery(env) {
       <div class="iconGrid">${icons}</div><div class="dock"></div>`;
   }
   let out = '';
+  const gloom = ['rain', 'storm', 'cloudy', 'fog'].includes(wxState.cond);
+  const snowy = wxState.cond === 'snow';
+  const cloudMod = wxState.cond === 'storm' ? 'darkCloud' : gloom ? 'greyCloud' : snowy ? 'paleCloud' : '';
+  const sunHtml = (gloom || snowy) ? '' :
+    `<div class="deco sun"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>`;
   if (env === 'meadow') {
-    out = `
-      <div class="deco sun"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>
-      <div class="deco cloud" style="top:10%; animation-duration:46s; animation-delay:-8s"></div>
-      <div class="deco cloud" style="top:22%; animation-duration:64s; animation-delay:-30s; transform:scale(.7); opacity:.85"></div>
-      <div class="deco cloud" style="top:5%;  animation-duration:80s; animation-delay:-55s; transform:scale(.5); opacity:.7"></div>`;
+    out = `${sunHtml}
+      <div class="deco cloud ${cloudMod}" style="top:10%; animation-duration:46s; animation-delay:-8s"></div>
+      <div class="deco cloud ${cloudMod}" style="top:22%; animation-duration:64s; animation-delay:-30s; transform:scale(.7); opacity:.85"></div>
+      <div class="deco cloud ${cloudMod}" style="top:5%;  animation-duration:80s; animation-delay:-55s; transform:scale(.5); opacity:.7"></div>`;
     out += pos(fluffyTree(1, false), 'bottom:34%; left:2%;');
     out += pos(fluffyTree(.65, false), 'bottom:38%; right:4%; opacity:.9;');
-    const fcols = ['#f79ec0', '#ffd965', '#b8a7f0', '#ff8a5c', '#f7c9d8'];
-    [6, 18, 34, 58, 74, 88].forEach((x, i) =>
-      { out += pos(`<span class="sway" style="display:inline-block; animation-delay:${i * .4}s">${flower(fcols[i % 5])}</span>`, `bottom:${5 + (i % 3) * 9}%; left:${x}%;`); });
+    if (!snowy) {
+      const fcols = ['#f79ec0', '#ffd965', '#b8a7f0', '#ff8a5c', '#f7c9d8'];
+      [6, 18, 34, 58, 74, 88].forEach((x, i) =>
+        { out += pos(`<span class="sway" style="display:inline-block; animation-delay:${i * .4}s">${flower(fcols[i % 5])}</span>`, `bottom:${5 + (i % 3) * 9}%; left:${x}%;`); });
+    }
     [12, 44, 66, 92].forEach((x, i) => { out += pos(grassTuft(), `bottom:${3 + (i % 2) * 13}%; left:${x}%; opacity:.9;`); });
-    out += pos(`<span class="butterfly" style="display:inline-block">${butterflySVG('#f79ec0','#ffc7dd')}</span>`, 'bottom:30%; left:14%;');
-    out += pos(`<span class="butterfly" style="display:inline-block; animation-delay:-8s">${butterflySVG('#8ad0ff','#c9ecff')}</span>`, 'bottom:38%; left:52%;');
+    if (!gloom && !snowy) {
+      out += pos(`<span class="butterfly" style="display:inline-block">${butterflySVG('#f79ec0','#ffc7dd')}</span>`, 'bottom:30%; left:14%;');
+      out += pos(`<span class="butterfly" style="display:inline-block; animation-delay:-8s">${butterflySVG('#8ad0ff','#c9ecff')}</span>`, 'bottom:38%; left:52%;');
+    }
   } else if (env === 'grove') {
     out = `<div class="deco moon"><i style="top:12px;left:14px;width:11px;height:11px"></i><i style="top:30px;left:30px;width:7px;height:7px"></i><i style="top:16px;left:36px;width:5px;height:5px"></i></div>
       <div class="deco meteor"></div>
@@ -1100,20 +1122,25 @@ function scenery(env) {
       { out += `<div class="deco firefly" style="top:${t}%; left:${l}; animation-duration:${6 + d}s; animation-delay:${d}s"></div>`; });
     out += `<div class="deco fog" style="bottom:24%"></div><div class="deco fog" style="bottom:10%; animation-delay:-7s; opacity:.09"></div>`;
   } else if (env === 'cove') {
+    const waveCols = gloom || snowy
+      ? ['#9bb5bd','#b3c8ce','#ccd9dc']
+      : ['#8fdce8','#b8ecf2','#d8f4f6'];
     out = `
-      <div class="deco sun" style="right:auto; left:8%"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>
-      <div class="deco cloud" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.8"></div>
-      <div class="deco wave" style="--wc:#8fdce8; top:47.5%; animation-duration:5s; opacity:.9"></div>
-      <div class="deco wave" style="--wc:#b8ecf2; top:52%; animation-duration:6.5s; animation-delay:-2s; opacity:.8"></div>
-      <div class="deco wave" style="--wc:#d8f4f6; top:57%; animation-duration:8s; animation-delay:-4s; opacity:.6"></div>`;
-    out += pos(`<span class="bobber" style="display:inline-block">${sailboat()}</span>`, 'top:34%; left:64%;');
+      ${sunHtml ? sunHtml.replace('class="deco sun"', 'class="deco sun" style="right:auto; left:8%"') : ''}
+      <div class="deco cloud ${cloudMod}" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.8"></div>
+      <div class="deco wave" style="--wc:${waveCols[0]}; top:47.5%; animation-duration:${wxState.cond === 'storm' ? 2.5 : 5}s; opacity:.9"></div>
+      <div class="deco wave" style="--wc:${waveCols[1]}; top:52%; animation-duration:${wxState.cond === 'storm' ? 3.5 : 6.5}s; animation-delay:-2s; opacity:.8"></div>
+      <div class="deco wave" style="--wc:${waveCols[2]}; top:57%; animation-duration:8s; animation-delay:-4s; opacity:.6"></div>`;
+    if (wxState.cond !== 'storm')
+      out += pos(`<span class="bobber" style="display:inline-block">${sailboat()}</span>`, 'top:34%; left:64%;');
     out += pos(palmTree(), 'bottom:26%; left:-3%;');
     out += pos(palmTree(), 'bottom:28%; right:-5%; transform:scaleX(-1);');
     out += pos(shell(), 'bottom:8%; left:22%;');
     out += pos(shell(), 'bottom:4%; left:64%; transform:rotate(20deg);');
     out += pos(starfishSVG(), 'bottom:12%; right:12%;');
     out += pos(starfishSVG(), 'bottom:3%; left:38%; transform:rotate(40deg) scale(.8);');
-    out += pos(`<span class="crab" style="display:inline-block">${crabSVG()}</span>`, 'bottom:1.5%; left:4%;');
+    if (!['rain', 'storm'].includes(wxState.cond))
+      out += pos(`<span class="crab" style="display:inline-block">${crabSVG()}</span>`, 'bottom:1.5%; left:4%;');
   } else if (env === 'cavern') {
     for (let i = 0; i < 8; i++)
       out += `<div class="deco star" style="top:${3 + Math.random() * 30}%; left:${Math.random() * 94}%;
@@ -1232,7 +1259,13 @@ function isNight() { const h = new Date().getHours(); return h >= 20 || h < 6; }
 
 function renderStage() {
   const key = S.mode === 'phone' ? 'phone' : S.env;
-  stage.className = 'env-' + key + (isNight() && key !== 'phone' ? ' night' : '');
+  let wxClass = '';
+  if (key !== 'phone') {
+    if (wxState.cond === 'storm') wxClass = ' wx-grey wx-storm';
+    else if (wxState.cond === 'snow') wxClass = ' wx-snowy';
+    else if (['rain', 'cloudy', 'fog'].includes(wxState.cond)) wxClass = ' wx-grey';
+  }
+  stage.className = 'env-' + key + wxClass + (isNight() && key !== 'phone' ? ' night' : '');
   $('#scenery').innerHTML = scenery(key) + '<div class="vig"></div>';
 }
 
