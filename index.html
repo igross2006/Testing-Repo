@@ -700,21 +700,28 @@ function mouth(mood, cx, cy) {
 }
 const zzz = (x, y) => `<text x="${x}" y="${y}" font-size="26" fill="#cfc4e8" font-weight="bold">z&#8202;z</text>`;
 
-function umbrella(baseY, poleLen, color) {
-  const cx = 200, r = 60;
-  let scallops = '';
-  for (let i = 0; i < 5; i++) scallops += ' q -12 13 -24 0';
-  return `<g class="brolly">
-    <path d="M${cx} ${baseY - r + 4} l 0 -12" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
-    <path d="M${cx} ${baseY} L ${cx} ${baseY + poleLen} q 0 16 -16 14" fill="none" stroke="#8a6248" stroke-width="6" stroke-linecap="round"/>
-    <path d="M${cx - r} ${baseY} A ${r} ${r} 0 0 1 ${cx + r} ${baseY}${scallops} z" fill="${color}" opacity=".97"/>
-    <path d="M${cx - r + 14} ${baseY - 16} A ${r} ${r} 0 0 1 ${cx - 6} ${baseY - r + 10}"
-      fill="none" stroke="#ffffff" stroke-width="4" opacity=".45" stroke-linecap="round"/>
+// Umbrella in two layers: the pole is drawn BEHIND the pet (rising from their
+// side paw, never across the face) and the canopy sits on top, over their head.
+function umbrellaPole(baseY, handY) {
+  const px = 246;
+  return `<g transform="rotate(-10 ${px} ${handY})">
+    <path d="M${px} ${baseY} L ${px} ${handY} q 0 16 -16 14" fill="none" stroke="#8a6248" stroke-width="7" stroke-linecap="round"/>
   </g>`;
 }
+function umbrellaCanopy(baseY, handY, color) {
+  const px = 246, r = 56;
+  let scallops = '';
+  for (let i = 0; i < 5; i++) scallops += ' q -11.2 12 -22.4 0';
+  return `<g class="brolly"><g transform="rotate(-10 ${px} ${handY})">
+    <path d="M${px} ${baseY - r + 4} l 0 -12" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
+    <path d="M${px - r} ${baseY} A ${r} ${r} 0 0 1 ${px + r} ${baseY}${scallops} z" fill="${color}" opacity=".97"/>
+    <path d="M${px - r + 15} ${baseY - 17} A ${r} ${r} 0 0 1 ${px - 7} ${baseY - r + 11}"
+      fill="none" stroke="#ffffff" stroke-width="4" opacity=".45" stroke-linecap="round"/>
+  </g></g>`;
+}
 const UMBRELLA = {
-  dragon:  [70, 150, '#f7b5d2'], phoenix: [62, 170, '#8ad0ff'], kraken: [72, 160, '#ffd965'],
-  unicorn: [58, 160, '#b8a7f0'], pegasus: [68, 160, '#7fd4a4'], wisp:   [62, 150, '#ff8a5c']
+  dragon:  [60, 350, '#f7b5d2'], phoenix: [58, 358, '#8ad0ff'], kraken: [62, 348, '#ffd965'],
+  unicorn: [58, 350, '#b8a7f0'], pegasus: [60, 350, '#7fd4a4'], wisp:   [58, 300, '#ff8a5c']
 };
 
 function scarf(cy, w, color) {
@@ -952,8 +959,10 @@ function creatureSVG(p) {
   if (p.form === 'sunny')
     art += `<g fill="#ffd965"><circle cx="120" cy="70" r="4"/><circle cx="286" cy="62" r="3.5"/>
             <circle cx="200" cy="34" r="4.5"/></g>`;
-  if (wxState.cond === 'rain' || wxState.cond === 'storm')
-    art += umbrella(...UMBRELLA[p.sp]);
+  if (wxState.cond === 'rain' || wxState.cond === 'storm') {
+    const [baseY, handY, uc] = UMBRELLA[p.sp];
+    art = umbrellaPole(baseY, handY) + art + umbrellaCanopy(baseY, handY, uc);
+  }
   const t = p.form === 'chonky' ? 'scale(1.13 .97)' : p.form === 'zoomy' ? 'scale(.94 1.05)' : '';
   const f = p.form === 'moody' ? 'style="filter:saturate(.55) brightness(.92)"' : '';
   return `<svg class="creature" viewBox="0 0 400 410"><defs>${GRADS}</defs>
