@@ -24,7 +24,7 @@
   /* ---------- header ---------- */
   header {
     display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px calc(6px);
+    padding: 10px 14px 6px;
     padding-top: max(10px, env(safe-area-inset-top));
   }
   header .title { font-weight: 800; letter-spacing: .03em; font-size: 1.05rem; }
@@ -43,42 +43,104 @@
     touch-action: none;
     box-shadow: 0 8px 30px rgba(0,0,0,.35) inset, 0 2px 10px rgba(0,0,0,.3);
   }
-  #stage.env-meadow { background: linear-gradient(180deg,#9fd8ff 0%,#dff3ff 54%,#a8dd8e 54%,#8fce77 100%); }
-  #stage.env-grove  { background: linear-gradient(180deg,#191538 0%,#2e2657 56%,#1f3a2d 56%,#173023 100%); }
-  #stage.env-cove   { background: linear-gradient(180deg,#7fd8e8 0%,#c9f0f4 54%,#f6e3b0 54%,#eed49a 100%); }
+  #scenery { position: absolute; inset: 0; pointer-events: none; }
+  #scenery svg { display: block; }
+  #stage.env-meadow { background: linear-gradient(180deg,#8fd0ff 0%,#c8ecff 40%,#e8f9ff 52%,#a8dd8e 52%,#8fce77 100%); }
+  #stage.env-grove  { background: linear-gradient(180deg,#131033 0%,#282052 46%,#3a2c66 56%,#1f3a2d 56%,#14281d 100%); }
+  #stage.env-cove   { background: linear-gradient(180deg,#6ecbe8 0%,#aee6f2 38%,#d8f4f6 50%,#7fd8e8 50%,#a9e6ef 62%,#f6e3b0 62%,#eed49a 100%); }
   #stage.night::after {
     content:''; position: absolute; inset: 0;
     background: rgba(20,16,50,.32); pointer-events: none; z-index: 4;
   }
 
-  .sun  { position: absolute; top: 7%; right: 10%; width: 52px; height: 52px; border-radius: 50%;
-          background: radial-gradient(circle at 35% 35%, #fff6c9, #ffd965); box-shadow: 0 0 40px #ffe08a88; }
-  .moon { position: absolute; top: 7%; right: 12%; width: 44px; height: 44px; border-radius: 50%;
-          background: radial-gradient(circle at 62% 35%, #fdf6de, #cfc4e8); box-shadow: 0 0 30px #cfc4e877; }
-  .cloud {
-    position: absolute; height: 22px; width: 70px; border-radius: 999px; background: #ffffffdd;
-    animation: drift 40s linear infinite;
+  .deco { position: absolute; }
+
+  /* sun & moon */
+  .sun { top: 6%; right: 8%; width: 64px; height: 64px; }
+  .sun .core {
+    position:absolute; inset: 6px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff6c9, #ffd965);
+    box-shadow: 0 0 46px #ffe08aa8;
   }
-  .cloud::before {
-    content:''; position: absolute; top: -12px; left: 16px; width: 30px; height: 30px;
-    border-radius: 50%; background: inherit;
+  .sun .rays { position:absolute; inset:0; animation: spin 24s linear infinite; }
+  .sun .rays span {
+    position:absolute; left:50%; top:50%; width:4px; height:64px; margin:-32px 0 0 -2px;
+    background: linear-gradient(180deg,#ffe08a00,#ffe08a88 30%,#ffe08a00 45%,#ffe08a00 55%,#ffe08a88 70%,#ffe08a00);
+    border-radius:2px;
   }
-  @keyframes drift { from { transform: translateX(-120px); } to { transform: translateX(calc(100vw)); } }
-  .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle 3s ease-in-out infinite; }
-  @keyframes twinkle { 0%,100% { opacity:.2; } 50% { opacity:.9; } }
-  .firefly {
-    position: absolute; width: 5px; height: 5px; border-radius: 50%;
-    background: #d9ff8a; box-shadow: 0 0 8px #d9ff8a;
-    animation: fly 7s ease-in-out infinite alternate;
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .moon { top: 5%; right: 9%; width: 58px; height: 58px; border-radius: 50%;
+          background: radial-gradient(circle at 62% 35%, #fdf6de, #cfc4e8);
+          box-shadow: 0 0 46px #cfc4e899; }
+  .moon i { position:absolute; border-radius:50%; background:#bdb0dd; opacity:.5; }
+
+  /* clouds */
+  .cloud { height: 24px; width: 78px; border-radius: 999px; background: #ffffffe0;
+           animation: drift linear infinite; }
+  .cloud::before, .cloud::after {
+    content:''; position:absolute; border-radius:50%; background:inherit;
   }
-  @keyframes fly { from { transform: translate(0,0); opacity:.9; } to { transform: translate(26px,-34px); opacity:.3; } }
-  .wave {
-    position: absolute; left: -50%; width: 200%; height: 26px; top: 51.5%;
-    background: radial-gradient(circle at 20px -6px, transparent 13px, #a9e6ef 14px);
-    background-size: 40px 26px; background-repeat: repeat-x; opacity: .8;
-    animation: lap 5s ease-in-out infinite alternate;
+  .cloud::before { top:-13px; left:14px; width:32px; height:32px; }
+  .cloud::after  { top:-9px;  left:40px; width:24px; height:24px; }
+  @keyframes drift { from { transform: translateX(-130px); } to { transform: translateX(110vw); } }
+
+  /* stars / meteor / fireflies / fog */
+  .star { border-radius: 50%; background: #fff; animation: twinkle 3s ease-in-out infinite; }
+  @keyframes twinkle { 0%,100% { opacity:.2; } 50% { opacity:.95; } }
+  .meteor {
+    top: 8%; left: 12%; width: 3px; height: 3px; border-radius: 50%; background:#fff;
+    box-shadow: 0 0 8px 2px #ffffffaa; opacity: 0;
+    animation: shoot 9s ease-in infinite;
   }
+  .meteor::before {
+    content:''; position:absolute; right:1px; top:1px; width:70px; height:1.5px;
+    background: linear-gradient(90deg,#fff0,#fffc); transform: rotate(-24deg); transform-origin: right center;
+  }
+  @keyframes shoot {
+    0%, 88% { opacity: 0; transform: translate(0,0); }
+    89% { opacity: 1; }
+    96% { opacity: 0; transform: translate(160px,72px); }
+    100% { opacity: 0; }
+  }
+  .firefly { width: 5px; height: 5px; border-radius: 50%;
+    background: #d9ff8a; box-shadow: 0 0 9px 2px #d9ff8a88;
+    animation: fly ease-in-out infinite alternate; }
+  @keyframes fly { from { transform: translate(0,0); opacity:.95; } to { transform: translate(30px,-38px); opacity:.25; } }
+  .fog { left:-10%; width:120%; height:34px; border-radius:50%;
+    background:#cfc4e8; opacity:.12; filter: blur(8px);
+    animation: fogDrift 14s ease-in-out infinite alternate; }
+  @keyframes fogDrift { from { transform: translateX(-16px); } to { transform: translateX(26px); } }
+
+  /* waves */
+  .wave { left:-50%; width:200%; height:26px;
+    background: radial-gradient(circle at 20px -6px, transparent 13px, var(--wc) 14px);
+    background-size: 40px 26px; background-repeat: repeat-x;
+    animation: lap ease-in-out infinite alternate; }
   @keyframes lap { from { transform: translateX(0); } to { transform: translateX(40px); } }
+
+  /* generic sways & bobs for scenery svgs */
+  .sway { animation: sway 4s ease-in-out infinite alternate; transform-origin: bottom center; }
+  @keyframes sway { from { transform: rotate(-3deg); } to { transform: rotate(3.5deg); } }
+  .bobber { animation: boatBob 4.5s ease-in-out infinite alternate; }
+  @keyframes boatBob { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(6px) rotate(2deg); } }
+  .butterfly { animation: flutterPath 16s ease-in-out infinite alternate; }
+  @keyframes flutterPath {
+    0%   { transform: translate(0,0); }
+    25%  { transform: translate(9vw,-6vh); }
+    50%  { transform: translate(4vw,-12vh); }
+    75%  { transform: translate(14vw,-4vh); }
+    100% { transform: translate(18vw,-10vh); }
+  }
+  .bwing { animation: bflap .5s ease-in-out infinite alternate; transform-box: fill-box; }
+  .bwing.L { transform-origin: right center; }
+  .bwing.R { transform-origin: left center; }
+  @keyframes bflap { from { transform: scaleX(1); } to { transform: scaleX(.35); } }
+  .crab { animation: scuttle 26s linear infinite; }
+  @keyframes scuttle {
+    0% { transform: translateX(-70px); } 46% { transform: translateX(46vw); }
+    54% { transform: translateX(46vw) scaleX(-1); } 100% { transform: translateX(-70px) scaleX(-1); }
+  }
+  .shroomGlow { filter: drop-shadow(0 0 6px #9fe8c8); }
 
   /* ---------- speech bubble ---------- */
   #bubble {
@@ -92,17 +154,20 @@
   }
   #bubble.show { opacity: 1; }
 
-  /* ---------- pets ---------- */
-  #pets {
-    position: absolute; bottom: 4%; left: 0; right: 0; z-index: 3;
-    display: flex; align-items: flex-end; justify-content: center; gap: 2vw;
+  /* ---------- pets (wandering) ---------- */
+  #pets { position: absolute; inset: 0; z-index: 3; }
+  .petCard {
+    position: absolute; text-align: center;
+    transform: translateX(-50%);
+    transition: width .3s;
   }
-  .petCard { text-align: center; transition: width .3s; }
+  .petCard.active { width: min(46vw, 205px); z-index: 5; }
+  .petCard:not(.active) { width: min(27vw, 118px); opacity: .95; z-index: 3; }
+  .flipWrap { display: block; transition: transform .25s; }
+  .petCard svg.creature { width: 100%; height: auto; display: block; }
   .petCard .creature { animation: bob 3.2s ease-in-out infinite; }
-  .petCard.active   { width: min(52vw, 230px); }
-  .petCard:not(.active) { width: min(27vw, 118px); opacity: .92; }
-  .petCard.asleep .creature { animation-duration: 5s; }
-  .petCard svg { width: 100%; height: auto; display: block; }
+  .petCard.walking .creature { animation: trot .45s ease-in-out infinite; }
+  .petCard.asleep .creature { animation-duration: 5.5s; }
   .petName {
     display: inline-block; margin-top: 2px; font-size: .78rem; font-weight: 700;
     background: rgba(0,0,0,.28); border-radius: 999px; padding: 3px 10px;
@@ -111,15 +176,55 @@
     0%,100% { transform: translateY(0) scale(1,1); }
     50%     { transform: translateY(-5px) scale(1.012,.988); }
   }
+  @keyframes trot {
+    0%,100% { transform: translateY(0) scale(1,1); }
+    50%     { transform: translateY(-9px) scale(.99,1.02); }
+  }
+
+  /* creature part animations */
   .eye { transform-origin: center; transform-box: fill-box; animation: blink 4.4s infinite; }
   @keyframes blink { 0%,93%,100% { transform: scaleY(1); } 95%,97% { transform: scaleY(.06); } }
+  .tailWag { transform-box: fill-box; transform-origin: left center; animation: wag 3.2s ease-in-out infinite; }
+  @keyframes wag { 0%,100% { transform: rotate(0); } 50% { transform: rotate(7deg); } }
+  .wingF { transform-box: fill-box; transform-origin: bottom center; animation: flapW 3.2s ease-in-out infinite; }
+  @keyframes flapW { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-8deg); } }
+  .wingF.R { animation-name: flapWR; }
+  @keyframes flapWR { 0%,100% { transform: rotate(0); } 50% { transform: rotate(8deg); } }
+  .flick { transform-box: fill-box; transform-origin: center bottom; animation: flick 1.4s ease-in-out infinite alternate; }
+  .flick.f2 { animation-delay: .4s; } .flick.f3 { animation-delay: .8s; }
+  @keyframes flick { from { transform: scaleY(1) skewX(0); } to { transform: scaleY(1.18) skewX(-4deg); } }
+  .tent { transform-box: fill-box; transform-origin: top center; animation: wiggle 3s ease-in-out infinite alternate; }
+  @keyframes wiggle { from { transform: rotate(-4deg); } to { transform: rotate(5deg); } }
+  .puffAnim { animation: puffUp 3.6s ease-out infinite; opacity: 0; transform-box: fill-box; }
+  .puffAnim.p2 { animation-delay: 1.2s; } .puffAnim.p3 { animation-delay: 2.4s; }
+  @keyframes puffUp {
+    0% { opacity:0; transform: translate(0,0) scale(.4); }
+    15% { opacity:.5; }
+    70% { opacity:0; transform: translate(12px,-42px) scale(1.15); }
+    100% { opacity:0; }
+  }
+  .ember { animation: emberUp 3s linear infinite; opacity: 0; transform-box: fill-box; }
+  .ember.e2 { animation-delay: 1.5s; }
+  @keyframes emberUp {
+    0% { opacity: 0; transform: translate(0,0); }
+    15% { opacity: .9; }
+    100% { opacity: 0; transform: translate(-10px,-70px); }
+  }
+  .bub { animation: bubUp 4s linear infinite; opacity: 0; transform-box: fill-box; }
+  .bub.b2 { animation-delay: 2s; }
+  @keyframes bubUp {
+    0% { opacity: 0; transform: translate(0,0) scale(.6); }
+    15% { opacity: .8; }
+    100% { opacity: 0; transform: translate(6px,-60px) scale(1.1); }
+  }
 
-  .eggCard { width: min(30vw, 130px); text-align: center; }
+  .eggCard { position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%);
+             width: min(30vw, 130px); text-align: center; z-index: 6; }
   .eggCard svg { width: 100%; }
   .eggCard.wob svg { animation: wobble .4s; }
   @keyframes wobble { 25% { transform: rotate(-9deg); } 75% { transform: rotate(9deg); } }
 
-  /* ---------- particles / sparkles ---------- */
+  /* ---------- particles / pickups ---------- */
   #fx { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
   .float { position: absolute; font-size: 1.25rem; animation: floatUp 1.2s ease-out forwards; }
   @keyframes floatUp { to { transform: translateY(-70px); opacity: 0; } }
@@ -130,7 +235,7 @@
   }
   @keyframes hover { from { transform: translateY(0); } to { transform: translateY(-10px); } }
 
-  /* ---------- action bar ---------- */
+  /* ---------- action bar / stats ---------- */
   #actions {
     display: flex; gap: 10px; justify-content: center; align-items: center;
     padding: 12px 14px;
@@ -143,7 +248,6 @@
   }
   .act:active { transform: scale(.95); background: rgba(255,255,255,.22); }
 
-  /* ---------- stat bars ---------- */
   #statPanel {
     display: flex; gap: 12px; justify-content: center;
     padding: 8px 18px 0; font-size: .8rem;
@@ -154,7 +258,7 @@
   .stat.s-happy .fill  { background: linear-gradient(90deg,#f79ec0,#ffc7dd); }
   .stat.s-energy .fill { background: linear-gradient(90deg,#8ad0ff,#c9ecff); }
 
-  /* ---------- modal ---------- */
+  /* ---------- modal / toast ---------- */
   #modal {
     position: fixed; inset: 0; z-index: 20; display: none;
     background: rgba(15,12,30,.6); backdrop-filter: blur(3px);
@@ -181,7 +285,6 @@
   .pv-grove  { background: linear-gradient(180deg,#221c44 56%,#1f3a2d 56%); }
   .pv-cove   { background: linear-gradient(180deg,#7fd8e8 54%,#eed49a 54%); }
 
-  /* ---------- toast ---------- */
   #toast {
     position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%);
     background: #fffdf6; color: #46395a; border-radius: 999px;
@@ -297,6 +400,9 @@ function freshState() {
 let S;
 try { S = JSON.parse(localStorage.getItem('mythlings')); } catch (e) {}
 if (!S || !Array.isArray(S.pets)) S = freshState();
+S.pets.forEach((p, i) => {                  // migrate saves from before wandering
+  if (p.x == null) { p.x = 25 + i * 25; p.tx = p.x; p.dir = 1; }
+});
 
 function save() { S.last = Date.now(); localStorage.setItem('mythlings', JSON.stringify(S)); }
 
@@ -317,7 +423,6 @@ function tickPet(p, sec) {
   p.happy = clamp(p.happy - H_DECAY * hMul * sec);
 }
 
-// offline catch-up (capped at 24h)
 {
   const away = Math.min(86400, (Date.now() - (S.last || Date.now())) / 1000);
   if (away > 60) S.pets.forEach(p => tickPet(p, away));
@@ -325,15 +430,20 @@ function tickPet(p, sec) {
 
 /* ====================== creature art ====================== */
 
-function eyes(x1, x2, cy, closed) {
+function eyes(x1, x2, cy, closed, mood) {
   if (closed) return `
     <path d="M${x1-13} ${cy} q 13 11 26 0" fill="none" stroke="#3a2e3d" stroke-width="4.5" stroke-linecap="round"/>
     <path d="M${x2-13} ${cy} q 13 11 26 0" fill="none" stroke="#3a2e3d" stroke-width="4.5" stroke-linecap="round"/>`;
-  const one = x => `
+  const spark = mood === 'happy' ? (x) => `<circle cx="${x+2}" cy="${cy-2}" r="1.8" fill="#fff" opacity=".9"/>` : () => '';
+  const brow = mood === 'sad'
+    ? (x, s) => `<path d="M${x - 14*s} ${cy-30} l ${28*s} 8" stroke="#3a2e3d" stroke-width="4" stroke-linecap="round"/>`
+    : () => '';
+  const one = (x, s) => `
+    ${brow(x, s)}
     <g class="eye"><ellipse cx="${x}" cy="${cy}" rx="15" ry="20" fill="#3a2e3d"/>
     <circle cx="${x-5}" cy="${cy-8}" r="5.5" fill="#fff"/>
-    <circle cx="${x+6}" cy="${cy+6}" r="2.4" fill="#fff" opacity=".85"/></g>`;
-  return one(x1) + one(x2);
+    <circle cx="${x+6}" cy="${cy+6}" r="2.4" fill="#fff" opacity=".85"/>${spark(x)}</g>`;
+  return one(x1, 1) + one(x2, -1);
 }
 function blushes(x1, x2, cy) {
   return `<ellipse cx="${x1}" cy="${cy}" rx="13" ry="7.5" fill="#f79ec0" opacity=".55"/>
@@ -372,67 +482,108 @@ const GRADS = `
 function dragonArt(mood, asleep) {
   return `
   <ellipse cx="200" cy="392" rx="100" ry="15" fill="#000" opacity=".18"/>
-  <path d="M258 322 Q 322 316 330 274 Q 334 252 318 246" fill="none" stroke="#5cbf8b" stroke-width="26" stroke-linecap="round"/>
-  <path d="M318 246 c -6 -12 -24 -8 -22 6 c 1 9 12 16 20 20 c 8 -6 17 -15 16 -24 c -2 -13 -19 -13 -14 -2 z" fill="#f7b5d2"/>
-  <path d="M118 300 Q 74 268 82 226 Q 108 238 118 254 Q 118 240 132 232 Q 140 258 136 282 Z"
-        fill="url(#gWing)" stroke="#e393b8" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M282 300 Q 326 268 318 226 Q 292 238 282 254 Q 282 240 268 232 Q 260 258 264 282 Z"
-        fill="url(#gWing)" stroke="#e393b8" stroke-width="4" stroke-linejoin="round"/>
+  <g class="tailWag">
+    <path d="M258 322 Q 322 316 330 274 Q 334 252 318 246" fill="none" stroke="#5cbf8b" stroke-width="26" stroke-linecap="round"/>
+    <path d="M262 318 Q 316 312 324 276" fill="none" stroke="#7fd4a4" stroke-width="12" stroke-linecap="round"/>
+    <path d="M318 246 c -6 -12 -24 -8 -22 6 c 1 9 12 16 20 20 c 8 -6 17 -15 16 -24 c -2 -13 -19 -13 -14 -2 z" fill="#f7b5d2"/>
+  </g>
+  <g class="wingF">
+    <path d="M118 300 Q 74 268 82 226 Q 108 238 118 254 Q 118 240 132 232 Q 140 258 136 282 Z"
+          fill="url(#gWing)" stroke="#e393b8" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M96 244 Q 112 262 122 282 M 116 240 Q 124 258 128 276" fill="none" stroke="#e393b8" stroke-width="2.5" opacity=".7"/>
+  </g>
+  <g class="wingF R">
+    <path d="M282 300 Q 326 268 318 226 Q 292 238 282 254 Q 282 240 268 232 Q 260 258 264 282 Z"
+          fill="url(#gWing)" stroke="#e393b8" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M304 244 Q 288 262 278 282 M 284 240 Q 276 258 272 276" fill="none" stroke="#e393b8" stroke-width="2.5" opacity=".7"/>
+  </g>
   <ellipse cx="200" cy="300" rx="80" ry="70" fill="url(#gDrag)"/>
   <ellipse cx="200" cy="315" rx="52" ry="46" fill="url(#gBelly)"/>
+  <path d="M162 300 q 38 12 76 0 M 158 322 q 42 13 84 0 M 162 344 q 38 12 76 0"
+        fill="none" stroke="#e0cfa0" stroke-width="3" opacity=".8"/>
   <ellipse cx="152" cy="362" rx="24" ry="15" fill="#5cbf8b"/>
   <ellipse cx="248" cy="362" rx="24" ry="15" fill="#5cbf8b"/>
+  <ellipse cx="144" cy="358" rx="4.5" ry="3.5" fill="#a8e6c0"/><ellipse cx="156" cy="360" rx="4.5" ry="3.5" fill="#a8e6c0"/>
+  <ellipse cx="240" cy="358" rx="4.5" ry="3.5" fill="#a8e6c0"/><ellipse cx="252" cy="360" rx="4.5" ry="3.5" fill="#a8e6c0"/>
   <circle cx="200" cy="170" r="92" fill="url(#gDrag)"/>
   <path d="M146 96 Q 138 66 158 62 Q 172 78 166 100 Z" fill="#fdf6de" stroke="#e8d9a8" stroke-width="3"/>
   <path d="M254 96 Q 262 66 242 62 Q 228 78 234 100 Z" fill="#fdf6de" stroke="#e8d9a8" stroke-width="3"/>
-  ${eyes(164, 236, 162, asleep)}
+  <path d="M184 84 q 6 -14 14 -2 z M 202 80 q 6 -14 14 -2 z" fill="#fdf6de" stroke="#e8d9a8" stroke-width="2.5"/>
+  <ellipse cx="118" cy="168" rx="14" ry="20" fill="#7fd4a4" stroke="#5cbf8b" stroke-width="3"/>
+  <ellipse cx="282" cy="168" rx="14" ry="20" fill="#7fd4a4" stroke="#5cbf8b" stroke-width="3"/>
+  ${eyes(164, 236, 162, asleep, mood)}
   ${blushes(134, 266, 196)}
   <ellipse cx="193" cy="205" rx="3.4" ry="4.6" fill="#3a2e3d" opacity=".8"/>
   <ellipse cx="207" cy="205" rx="3.4" ry="4.6" fill="#3a2e3d" opacity=".8"/>
   ${mouth(asleep ? 'ok' : mood, 200, 224)}
+  ${mood === 'happy' && !asleep ? `<path d="M212 228 l 5 8 l 6 -6 z" fill="#fff"/>` : ''}
+  ${!asleep ? `<g fill="#cfc4e8"><circle class="puffAnim" cx="268" cy="120" r="8"/>
+    <circle class="puffAnim p2" cx="274" cy="114" r="5.5"/><circle class="puffAnim p3" cx="266" cy="110" r="6.5"/></g>` : ''}
   ${asleep ? zzz(288, 96) : ''}`;
 }
 
 function phoenixArt(mood, asleep) {
-  const flame = (x, h, w) =>
-    `<path d="M${x} ${118} q ${-w} ${-h*.55} 0 ${-h} q ${w} ${h*.45} 0 ${h} z" fill="url(#gFlame)"/>`;
+  const flame = (x, h, w, cls) =>
+    `<path class="flick ${cls}" d="M${x} 118 q ${-w} ${-h*.55} 0 ${-h} q ${w} ${h*.45} 0 ${h} z" fill="url(#gFlame)"/>`;
   return `
   <ellipse cx="200" cy="392" rx="95" ry="15" fill="#000" opacity=".18"/>
-  ${flame(200, 62, 20)}${flame(168, 44, 15)}${flame(232, 44, 15)}
+  <path d="M148 362 Q 120 392 132 398 Q 156 398 166 376 Z" fill="url(#gFlame)" opacity=".9"/>
+  <path d="M252 362 Q 280 392 268 398 Q 244 398 234 376 Z" fill="url(#gFlame)" opacity=".9"/>
+  ${flame(200, 64, 20, '')}${flame(168, 46, 15, 'f2')}${flame(232, 46, 15, 'f3')}
   <circle cx="200" cy="250" r="125" fill="url(#gPhx)"/>
-  <path d="M92 260 Q 62 288 78 316 Q 104 306 112 284 Z" fill="#ffd965" stroke="#f2a25c" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M308 260 Q 338 288 322 316 Q 296 306 288 284 Z" fill="#ffd965" stroke="#f2a25c" stroke-width="4" stroke-linejoin="round"/>
+  <g class="wingF">
+    <path d="M92 260 Q 58 290 78 320 Q 106 310 114 284 Z" fill="#ffd965" stroke="#f2a25c" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M80 296 q 12 4 24 -4 M 76 308 q 12 6 26 -4" fill="none" stroke="#f2a25c" stroke-width="3" opacity=".8"/>
+  </g>
+  <g class="wingF R">
+    <path d="M308 260 Q 342 290 322 320 Q 294 310 286 284 Z" fill="#ffd965" stroke="#f2a25c" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M320 296 q -12 4 -24 -4 M 324 308 q -12 6 -26 -4" fill="none" stroke="#f2a25c" stroke-width="3" opacity=".8"/>
+  </g>
   <ellipse cx="200" cy="308" rx="66" ry="52" fill="url(#gBelly)"/>
+  <path d="M176 266 q 10 10 22 0 M 200 272 q 10 10 22 0 M 186 284 q 10 10 22 0"
+        fill="none" stroke="#e8c98f" stroke-width="3" opacity=".8"/>
   <ellipse cx="166" cy="376" rx="16" ry="9" fill="#e8874f"/>
   <ellipse cx="234" cy="376" rx="16" ry="9" fill="#e8874f"/>
-  ${eyes(158, 242, 218, asleep)}
+  ${eyes(158, 242, 218, asleep, mood)}
   ${blushes(126, 274, 252)}
   <path d="M200 240 l -13 12 q 13 10 26 0 z" fill="#ffb545" stroke="#e8874f" stroke-width="3" stroke-linejoin="round"/>
+  ${!asleep ? `<g fill="#ffd965"><circle class="ember" cx="120" cy="150" r="4"/>
+    <circle class="ember e2" cx="286" cy="160" r="3.5"/></g>` : ''}
   ${asleep ? zzz(292, 140) : (mood === 'sad'
       ? `<path d="M184 276 Q 200 266 216 276" fill="none" stroke="#3a2e3d" stroke-width="4.5" stroke-linecap="round"/>` : '')}`;
 }
 
 function krakenArt(mood, asleep) {
-  const tent = (x, dx) =>
-    `<path d="M${x} 300 q ${dx} 44 ${dx * .3} 62" fill="none" stroke="#8f7ad6" stroke-width="26" stroke-linecap="round"/>`;
+  const tent = (x, dx, i) => `
+    <g class="tent" style="animation-delay:${i * .4}s">
+      <path d="M${x} 300 q ${dx} 44 ${dx * .3} 62" fill="none" stroke="#8f7ad6" stroke-width="26" stroke-linecap="round"/>
+      <circle cx="${x + dx * .5}" cy="330" r="3.5" fill="#cfc0f5" opacity=".9"/>
+      <circle cx="${x + dx * .75}" cy="346" r="3" fill="#cfc0f5" opacity=".9"/>
+    </g>`;
   return `
   <ellipse cx="200" cy="392" rx="105" ry="15" fill="#000" opacity=".18"/>
-  ${tent(118, -14)}${tent(152, -6)}${tent(186, -2)}${tent(214, 2)}${tent(248, 6)}${tent(282, 14)}
+  ${tent(118,-14,0)}${tent(152,-6,1)}${tent(186,-2,2)}${tent(214,2,3)}${tent(248,6,4)}${tent(282,14,5)}
   <circle cx="200" cy="205" r="118" fill="url(#gKrk)"/>
   <ellipse cx="200" cy="282" rx="82" ry="40" fill="url(#gKrk)"/>
   <ellipse cx="200" cy="150" rx="34" ry="18" fill="#ffffff" opacity=".25"/>
-  ${eyes(156, 244, 208, asleep)}
+  <circle cx="136" cy="130" r="9" fill="#9d8ade" opacity=".7"/>
+  <circle cx="268" cy="122" r="7" fill="#9d8ade" opacity=".7"/>
+  <circle cx="228" cy="102" r="5.5" fill="#9d8ade" opacity=".7"/>
+  ${eyes(156, 244, 208, asleep, mood)}
   ${blushes(122, 278, 242)}
   ${mouth(asleep ? 'ok' : mood, 200, 252)}
-  ${asleep ? zzz(292, 118) : ''}
-  <circle cx="286" cy="132" r="7" fill="#cfe8ff" opacity=".8"/>
-  <circle cx="300" cy="112" r="4.5" fill="#cfe8ff" opacity=".6"/>`;
+  ${!asleep ? `<g fill="none" stroke="#cfe8ff" stroke-width="2.5">
+    <circle class="bub" cx="292" cy="140" r="7"/><circle class="bub b2" cx="118" cy="150" r="5"/></g>` : ''}
+  ${asleep ? zzz(292, 118) : ''}`;
 }
 
 const ART = { dragon: dragonArt, phoenix: phoenixArt, kraken: krakenArt };
 
+function creatureMoodSig(p) {
+  return p.asleep ? 'z' : (Math.min(p.food, p.happy, p.energy) < 35 ? 'sad' : (p.happy > 70 ? 'happy' : 'ok'));
+}
 function creatureSVG(p) {
-  const mood = p.asleep ? 'ok' : (Math.min(p.food, p.happy, p.energy) < 35 ? 'sad' : (p.happy > 70 ? 'happy' : 'ok'));
+  const mood = creatureMoodSig(p) === 'z' ? 'ok' : creatureMoodSig(p);
   return `<svg class="creature" viewBox="0 0 400 410"><defs>${GRADS}</defs>${ART[p.sp](mood, p.asleep)}</svg>`;
 }
 
@@ -444,28 +595,139 @@ const eggSVG = `
   <circle cx="94" cy="160" r="5" fill="#d6bde4"/><circle cx="126" cy="76" r="5" fill="#cfc4e8"/>
   </svg>`;
 
+/* ====================== scenery ====================== */
+
+const svgDeco = (w, h, inner) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${inner}</svg>`;
+
+function flower(color) {
+  const petal = a => `<ellipse cx="0" cy="-9" rx="5" ry="9" fill="${color}" transform="rotate(${a} 14 20) translate(14 20)"/>`;
+  return svgDeco(28, 42, `
+    <path d="M14 40 V 18" stroke="#5da05d" stroke-width="3"/>
+    <path d="M14 30 q -8 -3 -10 -10" stroke="#5da05d" stroke-width="3" fill="none"/>
+    <g>${[0,72,144,216,288].map(petal).join('')}</g>
+    <circle cx="14" cy="20" r="5.5" fill="#ffd965"/>`);
+}
+function grassTuft() {
+  return svgDeco(30, 26, `
+    <path d="M6 26 q -2 -14 -6 -18 M 12 26 q 0 -16 -2 -22 M 18 26 q 2 -14 6 -20 M 24 26 q 2 -10 6 -13"
+      stroke="#6cb85f" stroke-width="3" fill="none" stroke-linecap="round"/>`);
+}
+function butterflySVG(c1, c2) {
+  return svgDeco(34, 28, `
+    <ellipse class="bwing L" cx="10" cy="13" rx="9" ry="12" fill="${c1}"/>
+    <ellipse class="bwing R" cx="24" cy="13" rx="9" ry="12" fill="${c2}"/>
+    <rect x="15.5" y="4" width="3" height="20" rx="1.5" fill="#5a4a5a"/>`);
+}
+function fluffyTree(scale, dark) {
+  const leaf = dark ? '#1c4a35' : '#5da05d', leaf2 = dark ? '#256448' : '#6cb85f';
+  return svgDeco(90 * scale, 110 * scale, `
+    <g transform="scale(${scale})">
+    <rect x="40" y="62" width="10" height="46" rx="4" fill="${dark ? '#3a2e3d' : '#8a6248'}"/>
+    <circle cx="45" cy="42" r="30" fill="${leaf}"/>
+    <circle cx="24" cy="54" r="20" fill="${leaf2}"/>
+    <circle cx="66" cy="54" r="20" fill="${leaf2}"/>
+    <circle cx="45" cy="26" r="18" fill="${leaf2}"/></g>`);
+}
+function glowShroom() {
+  return svgDeco(30, 32, `
+    <rect x="12" y="16" width="6" height="14" rx="3" fill="#e8dfc8"/>
+    <path d="M2 18 q 13 -20 26 0 z" fill="#9fe8c8"/>
+    <circle cx="9" cy="13" r="2.2" fill="#fff" opacity=".8"/>
+    <circle cx="20" cy="11" r="1.8" fill="#fff" opacity=".8"/>`);
+}
+function palmTree() {
+  return svgDeco(120, 130, `
+    <path d="M58 130 q 4 -50 18 -76" stroke="#8a6248" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <g class="sway">
+    <path d="M76 54 q -34 -18 -56 2 q 26 12 56 -2 z" fill="#4ea86a"/>
+    <path d="M76 54 q 34 -18 44 8 q -24 8 -44 -8 z" fill="#5db878"/>
+    <path d="M76 54 q -6 -34 -30 -40 q 4 26 30 40 z" fill="#5db878"/>
+    <path d="M76 54 q 18 -30 40 -28 q -8 24 -40 28 z" fill="#4ea86a"/>
+    <circle cx="70" cy="62" r="6" fill="#8a6248"/><circle cx="82" cy="64" r="6" fill="#a5754f"/></g>`);
+}
+function sailboat() {
+  return svgDeco(64, 60, `
+    <path d="M6 44 h 52 l -10 12 h -32 z" fill="#c46a4a"/>
+    <rect x="31" y="6" width="3" height="38" fill="#5a4a5a"/>
+    <path d="M31 8 q -22 22 -2 34 z" fill="#fffdf6"/>
+    <path d="M36 10 q 16 18 0 30 z" fill="#ffd9a0"/>`);
+}
+function crabSVG() {
+  return svgDeco(46, 30, `
+    <ellipse cx="23" cy="18" rx="14" ry="10" fill="#e8734f"/>
+    <circle cx="17" cy="9" r="4" fill="#e8734f"/><circle cx="29" cy="9" r="4" fill="#e8734f"/>
+    <circle cx="17" cy="8" r="1.6" fill="#3a2e3d"/><circle cx="29" cy="8" r="1.6" fill="#3a2e3d"/>
+    <path d="M6 14 q -6 -6 -2 -10 M 40 14 q 6 -6 2 -10" stroke="#e8734f" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M10 26 l -5 3 M16 28 l -3 2 M30 28 l 3 2 M36 26 l 5 3" stroke="#c4573a" stroke-width="2.5" stroke-linecap="round"/>`);
+}
+function shell() {
+  return svgDeco(24, 20, `
+    <path d="M2 16 a 10 10 0 0 1 20 0 z" fill="#f7c9d8"/>
+    <path d="M12 6 v 10 M 7 8 l 3 8 M 17 8 l -3 8" stroke="#e393b8" stroke-width="1.6"/>`);
+}
+function starfishSVG() {
+  const arm = a => `<ellipse cx="0" cy="-8" rx="3.5" ry="8.5" fill="#f2a25c" transform="rotate(${a} 12 12) translate(12 12)"/>`;
+  return svgDeco(24, 24, `${[0,72,144,216,288].map(arm).join('')}<circle cx="12" cy="12" r="4.5" fill="#ffb37a"/>`);
+}
+
+function pos(html, style) { return `<div class="deco" style="${style}">${html}</div>`; }
+
+function scenery(env) {
+  if (env === 'meadow') {
+    let out = `
+      <div class="deco sun"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>
+      <div class="deco cloud" style="top:10%; animation-duration:46s; animation-delay:-8s"></div>
+      <div class="deco cloud" style="top:22%; animation-duration:64s; animation-delay:-30s; transform:scale(.7); opacity:.85"></div>
+      <div class="deco cloud" style="top:5%;  animation-duration:80s; animation-delay:-55s; transform:scale(.5); opacity:.7"></div>`;
+    out += pos(fluffyTree(1, false), 'bottom:34%; left:2%;');
+    out += pos(fluffyTree(.65, false), 'bottom:38%; right:4%; opacity:.9;');
+    const fcols = ['#f79ec0', '#ffd965', '#b8a7f0', '#ff8a5c', '#f7c9d8'];
+    [6, 18, 34, 58, 74, 88].forEach((x, i) =>
+      { out += pos(`<span class="sway" style="display:inline-block; animation-delay:${i * .4}s">${flower(fcols[i % 5])}</span>`, `bottom:${5 + (i % 3) * 9}%; left:${x}%;`); });
+    [12, 44, 66, 92].forEach((x, i) => { out += pos(grassTuft(), `bottom:${3 + (i % 2) * 13}%; left:${x}%; opacity:.9;`); });
+    out += pos(`<span class="butterfly" style="display:inline-block">${butterflySVG('#f79ec0','#ffc7dd')}</span>`, 'bottom:30%; left:14%;');
+    out += pos(`<span class="butterfly" style="display:inline-block; animation-delay:-8s">${butterflySVG('#8ad0ff','#c9ecff')}</span>`, 'bottom:38%; left:52%;');
+    return out;
+  }
+  if (env === 'grove') {
+    let out = `<div class="deco moon"><i style="top:12px;left:14px;width:11px;height:11px"></i><i style="top:30px;left:30px;width:7px;height:7px"></i><i style="top:16px;left:36px;width:5px;height:5px"></i></div>
+      <div class="deco meteor"></div>
+      <div class="deco meteor" style="left:55%; top:4%; animation-delay:4.5s"></div>`;
+    for (let i = 0; i < 16; i++)
+      out += `<div class="deco star" style="top:${3 + Math.random() * 40}%; left:${Math.random() * 94}%;
+              width:${2 + Math.random() * 2.5}px; height:${2 + Math.random() * 2.5}px; animation-delay:${Math.random() * 3}s"></div>`;
+    out += pos(fluffyTree(1.15, true), 'bottom:30%; left:-2%;');
+    out += pos(fluffyTree(.8, true), 'bottom:33%; left:14%; opacity:.8;');
+    out += pos(fluffyTree(1, true), 'bottom:31%; right:-1%;');
+    out += pos(fluffyTree(.6, true), 'bottom:35%; right:15%; opacity:.7;');
+    [8, 26, 70, 90].forEach((x, i) =>
+      { out += pos(`<span class="shroomGlow" style="display:inline-block">${glowShroom()}</span>`, `bottom:${4 + (i % 2) * 10}%; left:${x}%;`); });
+    [[62,'18%',0],[72,'70%',2],[58,'44%',4],[80,'30%',1],[66,'85%',3]].forEach(([t, l, d]) =>
+      { out += `<div class="deco firefly" style="top:${t}%; left:${l}; animation-duration:${6 + d}s; animation-delay:${d}s"></div>`; });
+    out += `<div class="deco fog" style="bottom:24%"></div><div class="deco fog" style="bottom:10%; animation-delay:-7s; opacity:.09"></div>`;
+    return out;
+  }
+  // cove
+  let out = `
+    <div class="deco sun" style="right:auto; left:8%"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>
+    <div class="deco cloud" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.8"></div>
+    <div class="deco wave" style="--wc:#8fdce8; top:47.5%; animation-duration:5s; opacity:.9"></div>
+    <div class="deco wave" style="--wc:#b8ecf2; top:52%; animation-duration:6.5s; animation-delay:-2s; opacity:.8"></div>
+    <div class="deco wave" style="--wc:#d8f4f6; top:57%; animation-duration:8s; animation-delay:-4s; opacity:.6"></div>`;
+  out += pos(`<span class="bobber" style="display:inline-block">${sailboat()}</span>`, 'top:34%; left:64%;');
+  out += pos(palmTree(), 'bottom:26%; left:-3%;');
+  out += pos(palmTree(), 'bottom:28%; right:-5%; transform:scaleX(-1);');
+  out += pos(shell(), 'bottom:8%; left:22%;');
+  out += pos(shell(), 'bottom:4%; left:64%; transform:rotate(20deg);');
+  out += pos(starfishSVG(), 'bottom:12%; right:12%;');
+  out += pos(starfishSVG(), 'bottom:3%; left:38%; transform:rotate(40deg) scale(.8);');
+  out += pos(`<span class="crab" style="display:inline-block">${crabSVG()}</span>`, 'bottom:1.5%; left:4%;');
+  return out;
+}
+
 /* ====================== rendering ====================== */
 
 const stage = $('#stage'), petsEl = $('#pets'), fx = $('#fx');
-
-function scenery(env) {
-  if (env === 'meadow') return `<div class="sun"></div>
-    <div class="cloud" style="top:12%; animation-delay:0s"></div>
-    <div class="cloud" style="top:24%; animation-delay:-18s; transform:scale(.7)"></div>`;
-  if (env === 'grove') {
-    let stars = '';
-    for (let i = 0; i < 10; i++)
-      stars += `<div class="star" style="top:${4 + Math.random() * 40}%; left:${Math.random() * 94}%;
-                width:${2 + Math.random() * 2}px; height:${2 + Math.random() * 2}px;
-                animation-delay:${Math.random() * 3}s"></div>`;
-    return `<div class="moon"></div>${stars}
-      <div class="firefly" style="top:62%; left:18%"></div>
-      <div class="firefly" style="top:70%; left:74%; animation-delay:2s"></div>
-      <div class="firefly" style="top:56%; left:48%; animation-delay:4s"></div>`;
-  }
-  return `<div class="sun"></div><div class="wave"></div>
-    <div class="wave" style="top:49%; opacity:.5; animation-delay:-2.5s"></div>`;
-}
 
 function isNight() { const h = new Date().getHours(); return h >= 20 || h < 6; }
 
@@ -477,8 +739,10 @@ function renderStage() {
 function renderPets() {
   let html = '';
   S.pets.forEach((p, i) => {
-    html += `<div class="petCard ${i === S.active ? 'active' : ''} ${p.asleep ? 'asleep' : ''}" data-i="${i}">
-      ${creatureSVG(p)}<span class="petName">${SPECIES[p.sp].name}</span></div>`;
+    html += `<div class="petCard ${i === S.active ? 'active' : ''} ${p.asleep ? 'asleep' : ''}"
+      data-i="${i}" style="left:${p.x}%; bottom:${3 + (i % 3) * 1.5}%">
+      <span class="flipWrap" style="transform:${p.dir < 0 ? 'scaleX(-1)' : 'none'}">${creatureSVG(p)}</span>
+      <span class="petName">${SPECIES[p.sp].name}</span></div>`;
   });
   if (S.egg) html += `<div class="eggCard" id="eggCard">${eggSVG}<span class="petName">??? egg</span></div>`;
   petsEl.innerHTML = html;
@@ -507,9 +771,33 @@ function renderAll(force) {
   if (force || sig !== lastSig) { renderPets(); lastSig = sig; }
   renderHUD();
 }
-function creatureMoodSig(p) {
-  return p.asleep ? 'z' : (Math.min(p.food, p.happy, p.energy) < 35 ? 'sad' : (p.happy > 70 ? 'happy' : 'ok'));
-}
+
+/* ====================== wandering ====================== */
+
+setInterval(() => {                                    // pick new destinations
+  S.pets.forEach(p => {
+    if (p.asleep) { p.tx = p.x; return; }
+    if (Math.abs((p.tx ?? p.x) - p.x) < 1 && Math.random() < 0.18)
+      p.tx = 12 + Math.random() * 76;
+  });
+}, 1000);
+
+setInterval(() => {                                    // move toward destinations
+  S.pets.forEach((p, i) => {
+    const el = petsEl.querySelector(`.petCard[data-i="${i}"]`);
+    if (!el) return;
+    const d = (p.tx ?? p.x) - p.x;
+    if (Math.abs(d) > 0.8 && !p.asleep) {
+      p.x += Math.sign(d) * Math.min(Math.abs(d), 0.8);
+      p.dir = Math.sign(d) || 1;
+      el.classList.add('walking');
+      el.querySelector('.flipWrap').style.transform = p.dir < 0 ? 'scaleX(-1)' : 'none';
+    } else {
+      el.classList.remove('walking');
+    }
+    el.style.left = p.x + '%';
+  });
+}, 120);
 
 /* ====================== feedback ====================== */
 
@@ -536,12 +824,11 @@ function burst(cx, cy) {
 
 /* ====================== interactions ====================== */
 
-// select pet / tap egg
 petsEl.addEventListener('click', e => {
   const egg = e.target.closest('#eggCard');
   if (egg) return tapEgg(egg);
   const card = e.target.closest('.petCard');
-  if (card && +card.dataset.i !== S.active) { S.active = +card.dataset.i; renderAll(); save(); }
+  if (card && +card.dataset.i !== S.active) { S.active = +card.dataset.i; renderAll(true); save(); }
 });
 
 function tapEgg(el) {
@@ -551,7 +838,8 @@ function tapEgg(el) {
   if (S.egg.taps >= EGG_TAPS) {
     const owned = S.pets.map(p => p.sp);
     const sp = rnd(Object.keys(SPECIES).filter(k => !owned.includes(k)));
-    S.pets.push({ sp, food: 85, happy: 85, energy: 85, asleep: false, born: Date.now() });
+    S.pets.push({ sp, food: 85, happy: 85, energy: 85, asleep: false, born: Date.now(),
+                  x: 50, tx: 30 + Math.random() * 40, dir: 1 });
     S.active = S.pets.length - 1;
     S.egg = null;
     const r = stage.getBoundingClientRect();
@@ -562,7 +850,6 @@ function tapEgg(el) {
   renderAll(); save();
 }
 
-// petting (stroke the active pet)
 let petting = false, lastX = 0, lastY = 0, strokeAcc = 0;
 petsEl.addEventListener('pointerdown', e => {
   if (!e.target.closest('.petCard.active')) return;
@@ -579,6 +866,7 @@ petsEl.addEventListener('pointermove', e => {
   if (strokeAcc > 110) {
     strokeAcc = 0;
     p.happy = clamp(p.happy + 2);
+    p.tx = p.x;                                   // petting pauses wandering
     const r = stage.getBoundingClientRect();
     particle('💗', e.clientX - r.left, e.clientY - r.top);
     buzz(12);
@@ -636,10 +924,10 @@ $('#envList').addEventListener('click', e => {
   }
   S.env = k;
   $('#modal').classList.remove('open');
-  renderStage(); renderAll(); save();
+  renderStage(); renderAll(true); save();
 });
 
-/* ---------- pickups: giggle sparkles & dream bubbles ---------- */
+/* ---------- pickups ---------- */
 function spawnPickup(emoji, reward, msg) {
   if (stage.querySelectorAll('.pickup').length >= 3) return;
   const b = document.createElement('button');
@@ -663,22 +951,23 @@ let dramaTimer = 0;
 setInterval(() => {
   S.pets.forEach(p => tickPet(p, 1));
 
-  // giggle sparkles from happy awake pets
   if (S.pets.some(p => !p.asleep && p.happy > 65) && Math.random() < 0.09)
     spawnPickup('✨', 2);
-  // dream bubbles from sleeping pets
   if (S.pets.some(p => p.asleep) && Math.random() < 0.05)
     spawnPickup('💭', 3);
-  // cuddle moments
-  const happyPets = S.pets.filter(p => !p.asleep && p.happy > 60);
-  if (happyPets.length >= 2 && Math.random() < 0.008) {
-    const [a, b] = happyPets;
-    speak(rnd(CUDDLES).replace('{a}', SPECIES[a.sp].name).replace('{b}', SPECIES[b.sp].name));
-    const r = stage.getBoundingClientRect();
-    particle('💞', r.width / 2, r.height * .5);
-  }
 
-  // drama & idle chatter
+  // cuddles when two happy pets wander near each other
+  const happyPets = S.pets.filter(p => !p.asleep && p.happy > 60);
+  for (let i = 0; i < happyPets.length; i++)
+    for (let j = i + 1; j < happyPets.length; j++) {
+      const a = happyPets[i], b = happyPets[j];
+      if (Math.abs(a.x - b.x) < 16 && Math.random() < 0.06) {
+        speak(rnd(CUDDLES).replace('{a}', SPECIES[a.sp].name).replace(/\{b\}/g, SPECIES[b.sp].name));
+        const r = stage.getBoundingClientRect();
+        particle('💞', r.width * (a.x + b.x) / 200, r.height * .55);
+      }
+    }
+
   if (++dramaTimer >= 18) {
     dramaTimer = 0;
     const p = S.pets[S.active];
@@ -698,7 +987,7 @@ setInterval(() => {
 /* ====================== boot ====================== */
 
 renderStage(); renderAll(true);
-setInterval(renderStage, 60000); // track day/night
+setInterval(renderStage, 60000);
 
 if (!S.greeted) {
   S.greeted = true; save();
