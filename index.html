@@ -977,24 +977,31 @@ function wispArt(mood, asleep, cold) {
 const ART = { dragon: dragonArt, phoenix: phoenixArt, kraken: krakenArt,
               unicorn: unicornArt, pegasus: pegasusArt, wisp: wispArt };
 
-/* ---------- sprite art direction (dragon uses the rendered sprite sheet) ---------- */
-const DRAGON_SPRITES = {
-  idle: 'assets/dragon/idle.png', happy: 'assets/dragon/happy.png',
-  sad: 'assets/dragon/sad.png', sleep: 'assets/dragon/sleep.png',
-  walk: ['assets/dragon/walk1.png', 'assets/dragon/walk2.png', 'assets/dragon/walk3.png'],
-  fire: 'assets/dragon/fire.png', pounce: 'assets/dragon/pounce.png'
-};
-[...Object.values(DRAGON_SPRITES).flat()].forEach(u => { const i = new Image(); i.src = u; });
+/* ---------- sprite art direction (rendered sprite sheets per species) ---------- */
+const SPRITES = {};
+['dragon', 'kraken', 'unicorn', 'pegasus', 'wisp'].forEach(sp => {
+  const b = `assets/${sp}/`;
+  SPRITES[sp] = {
+    idle: b + 'idle.webp', happy: b + 'happy.webp', sad: b + 'sad.webp', sleep: b + 'sleep.webp',
+    walk: [b + 'walk1.webp', b + 'walk2.webp', b + 'walk3.webp'],
+    fire: b + 'fire.webp', pounce: b + 'pounce.webp'
+  };
+});
+function preloadSprites(sp) {
+  if (!SPRITES[sp]) return;
+  [...Object.values(SPRITES[sp]).flat()].forEach(u => { const i = new Image(); i.src = u; });
+}
 
-function dragonSprite(p, mood, rainy) {
+function spriteArt(p, mood, rainy) {
+  const SP = SPRITES[p.sp];
   const state = p.asleep ? 'sleep' : mood === 'sad' ? 'sad' : mood === 'happy' ? 'happy' : 'idle';
   const filt = p.form === 'moody' ? 'filter:saturate(.55) brightness(.92);'
              : p.form === 'sunny' ? 'filter:drop-shadow(0 0 8px #ffd965);' : '';
   const imgT = p.form === 'chonky' ? 'style="transform:scaleX(1.12)"' : '';
-  return `<span class="creature spriteBox" data-state="${state}" style="${filt}">
-    <img src="${DRAGON_SPRITES[state]}" draggable="false" ${imgT}>
+  return `<span class="creature spriteBox" data-sp="${p.sp}" data-state="${state}" style="${filt}">
+    <img src="${SP[state]}" draggable="false" ${imgT}>
     ${p.asleep ? '<span class="spriteZzz">💤</span>' : ''}
-    ${rainy ? `<svg class="spriteOverlay" viewBox="0 -80 400 480"><defs>${GRADS}</defs>${umbrellaSVG(330, '#f7b5d2')}</svg>` : ''}
+    ${rainy ? `<svg class="spriteOverlay" viewBox="0 -80 400 480"><defs>${GRADS}</defs>${umbrellaSVG(...UMBRELLA[p.sp])}</svg>` : ''}
   </span>`;
 }
 
@@ -1004,8 +1011,8 @@ function creatureMoodSig(p) {
 function creatureSVG(p) {
   const mood = creatureMoodSig(p) === 'z' ? 'ok' : creatureMoodSig(p);
   const cold = wxState.cold;
-  if (p.sp === 'dragon')
-    return dragonSprite(p, mood, wxState.cond === 'rain' || wxState.cond === 'storm');
+  if (SPRITES[p.sp])
+    return spriteArt(p, mood, wxState.cond === 'rain' || wxState.cond === 'storm');
   let art = ART[p.sp](mood, p.asleep, cold);
   if (p.form === 'moody')
     art += `<path d="M148 78 q 40 -30 92 -6 q 6 10 -6 12 q -46 12 -86 2 q -8 -2 0 -8 z" fill="#46395a"/>
@@ -1390,7 +1397,7 @@ function renderPets() {
   S.pets.forEach((p, i) => {
     const badge = p.form ? FORM_BADGE[p.form] + ' ' : '';
     const aff = inAffinity(p) ? ' ♥' : '';
-    const flip = p.sp === 'dragon' ? p.dir > 0 : p.dir < 0;   // sprite dragon faces left natively
+    const flip = SPRITES[p.sp] ? p.dir > 0 : p.dir < 0;   // sprite walk cycles face left natively
     html += `<div class="petCard sp-${p.sp} ${i === S.active ? 'active' : ''} ${p.asleep ? 'asleep' : ''}"
       data-i="${i}" style="left:${p.x}%; bottom:${3 + (i % 3) * 1.5}%">
       <span class="flipWrap" style="transform:${flip ? 'scaleX(-1)' : 'none'}">${creatureSVG(p)}</span>
@@ -1565,6 +1572,7 @@ function hatch() {
     SPECIES[k].rare === wantRare && !S.pets.some(p => p.sp === k));
   if (!pool.length) pool = Object.keys(SPECIES).filter(k => !S.pets.some(p => p.sp === k));
   const sp = rnd(pool);
+  preloadSprites(sp);
   const newPet = { sp, food: 85, happy: 85, energy: 85, asleep: false, born: Date.now(),
                    x: 50, tx: 30 + Math.random() * 40, dir: 1, fed: 0, petted: 0, xp: 0 };
   S.egg = null;
@@ -1823,15 +1831,16 @@ setInterval(() => {
     const d = (p.tx ?? p.x) - p.x;
     const speed = p.form === 'zoomy' ? 1.15 : 0.8;
     const box = el.querySelector('.spriteBox');
+    const SP = box && SPRITES[box.dataset.sp];
     if (Math.abs(d) > 0.8 && !p.asleep) {
       p.x += Math.sign(d) * Math.min(Math.abs(d), speed);
       p.dir = Math.sign(d) || 1;
       el.classList.add('walking');
-      const flip = p.sp === 'dragon' ? p.dir > 0 : p.dir < 0;
+      const flip = SPRITES[p.sp] ? p.dir > 0 : p.dir < 0;
       el.querySelector('.flipWrap').style.transform = flip ? 'scaleX(-1)' : 'none';
-      // sprite dragons cycle real walk frames
-      if (box && !box.dataset.busy) {
-        const f = DRAGON_SPRITES.walk[Math.floor(pawTick / 2) % 3];
+      // sprite pets cycle real walk frames
+      if (SP && !box.dataset.busy) {
+        const f = SP.walk[Math.floor(pawTick / 2) % 3];
         const im = box.querySelector('img');
         if (im.getAttribute('src') !== f) im.src = f;
       }
@@ -1846,8 +1855,8 @@ setInterval(() => {
       }
     } else {
       el.classList.remove('walking');
-      if (box && !box.dataset.busy) {
-        const im = box.querySelector('img'), rest = DRAGON_SPRITES[box.dataset.state];
+      if (SP && !box.dataset.busy) {
+        const im = box.querySelector('img'), rest = SP[box.dataset.state];
         if (im.getAttribute('src') !== rest) im.src = rest;
       }
     }
@@ -1893,13 +1902,14 @@ function chompIcon(p, pi, el) {
   if (card) {
     card.classList.add('lunge'); setTimeout(() => card.classList.remove('lunge'), 700);
     const box = card.querySelector('.spriteBox');
-    if (box) {   // sprite dragon breathes fire at the icon
+    const SP = box && SPRITES[box.dataset.sp];
+    if (SP) {   // sprite pets fire their special (flame / ink / sparkles / cloud / flare) at the icon
       const im = box.querySelector('img');
       box.dataset.busy = '1';
-      im.src = DRAGON_SPRITES.fire;
+      im.src = SP.fire;
       const iconRight = ((el.getBoundingClientRect().left) > (card.getBoundingClientRect().left));
       card.querySelector('.flipWrap').style.transform = iconRight ? 'none' : 'scaleX(-1)';
-      setTimeout(() => { delete box.dataset.busy; im.src = DRAGON_SPRITES[box.dataset.state]; }, 1000);
+      setTimeout(() => { delete box.dataset.busy; im.src = SP[box.dataset.state]; }, 1000);
     }
   }
   const r = stage.getBoundingClientRect(), br = el.getBoundingClientRect();
@@ -2030,6 +2040,7 @@ setInterval(() => {
 renderStage(); renderWx(); renderAll(true);
 setInterval(renderStage, 60000);
 dailyCheck();
+new Set(S.pets.map(p => p.sp)).forEach(preloadSprites);
 
 if (S.wxMode === 'auto') fetchAutoWx();
 else applyWx(WX_PRESETS[S.wxMode].st, WX_PRESETS[S.wxMode].label);
