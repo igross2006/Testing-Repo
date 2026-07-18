@@ -50,19 +50,28 @@
   #stage.env-meadow { background: url(assets/bg/meadow-sunny.webp) center / cover no-repeat,
                                   linear-gradient(180deg,#8fd0ff 0%,#c8ecff 40%,#e8f9ff 52%,#a8dd8e 52%,#8fce77 100%); }
   #stage.env-grove  { background: linear-gradient(180deg,#131033 0%,#282052 46%,#3a2c66 56%,#1f3a2d 56%,#14281d 100%); }
-  #stage.env-cove   { background: linear-gradient(180deg,#6ecbe8 0%,#aee6f2 38%,#d8f4f6 50%,#7fd8e8 50%,#a9e6ef 62%,#f6e3b0 62%,#eed49a 100%); }
-  #stage.env-cavern { background: linear-gradient(180deg,#1c1433 0%,#2e2050 44%,#3d2a63 56%,#241a3e 56%,#180f2c 100%); }
+  #stage.env-cove   { background: url(assets/bg/cove-sunny.webp) center / cover no-repeat,
+                                  linear-gradient(180deg,#6ecbe8 0%,#aee6f2 38%,#d8f4f6 50%,#7fd8e8 50%,#a9e6ef 62%,#f6e3b0 62%,#eed49a 100%); }
+  #stage.env-cavern { background: url(assets/bg/cavern.webp) center / cover no-repeat,
+                                  linear-gradient(180deg,#1c1433 0%,#2e2050 44%,#3d2a63 56%,#241a3e 56%,#180f2c 100%); }
   #stage.env-hollow { background: linear-gradient(180deg,#2a3a2c 0%,#41573f 46%,#5a7350 56%,#3a4d33 56%,#2c3b27 100%); }
-  #stage.env-ember  { background: linear-gradient(180deg,#3a2030 0%,#5c2e3a 42%,#8a4a44 56%,#4d3238 56%,#3a252c 100%); }
+  #stage.env-ember  { background: url(assets/bg/ember.webp) center / cover no-repeat,
+                                  linear-gradient(180deg,#3a2030 0%,#5c2e3a 42%,#8a4a44 56%,#4d3238 56%,#3a252c 100%); }
   #stage.night::after {
     content:''; position: absolute; inset: 0;
     background: rgba(20,16,50,.32); pointer-events: none; z-index: 4;
   }
 
-  /* weather-modified skies (sunny environments go grey / dark / wintry) */
-  #stage.env-meadow.wx-grey  { background: linear-gradient(180deg,#93a0b5 0%,#b9c2d1 40%,#cfd5de 52%,#93b285 52%,#7d9c70 100%); }
-  #stage.env-meadow.wx-storm { background: linear-gradient(180deg,#525c70 0%,#75808f 40%,#8e97a6 52%,#6d8a63 52%,#597552 100%); }
-  #stage.env-meadow.wx-snowy { background: linear-gradient(180deg,#aeb9cc 0%,#d5dce8 40%,#e8ecf3 52%,#e6edf4 52%,#d2ddE8 100%); }
+  /* weather-modified skies (painted variants for the meadow, gradients elsewhere) */
+  #stage.env-meadow.wx-grey  { background: url(assets/bg/meadow-rainy.webp) center / cover no-repeat,
+                               linear-gradient(180deg,#93a0b5 0%,#b9c2d1 40%,#cfd5de 52%,#93b285 52%,#7d9c70 100%); }
+  #stage.env-meadow.wx-storm { background: url(assets/bg/meadow-rainy.webp) center / cover no-repeat,
+                               linear-gradient(180deg,#525c70 0%,#75808f 40%,#8e97a6 52%,#6d8a63 52%,#597552 100%); }
+  #stage.env-meadow.wx-snowy { background: url(assets/bg/meadow-snowy.webp) center / cover no-repeat,
+                               linear-gradient(180deg,#aeb9cc 0%,#d5dce8 40%,#e8ecf3 52%,#e6edf4 52%,#d2ddE8 100%); }
+  #stage.env-meadow.wx-storm::before {
+    content: ''; position: absolute; inset: 0; background: rgba(30,34,52,.32); pointer-events: none;
+  }
   #stage.env-cove.wx-grey    { background: linear-gradient(180deg,#8fa4b0 0%,#b4c4cc 38%,#ccd7dc 50%,#7fa8b5 50%,#93b8c2 62%,#d8cba8 62%,#c9bc98 100%); }
   #stage.env-cove.wx-storm   { background: linear-gradient(180deg,#4f5e6e 0%,#71818f 38%,#87979f 50%,#4f7382 50%,#628693 62%,#a89c80 62%,#998d73 100%); }
   #stage.env-cove.wx-snowy   { background: linear-gradient(180deg,#b3bfd0 0%,#d8dfe9 38%,#e9edf3 50%,#a5c4cf 50%,#bcd6de 62%,#e9e4d5 62%,#ddd8c9 100%); }
@@ -1012,7 +1021,7 @@ function creatureSVG(p) {
   const mood = creatureMoodSig(p) === 'z' ? 'ok' : creatureMoodSig(p);
   const cold = wxState.cold;
   if (SPRITES[p.sp])
-    return spriteArt(p, mood, wxState.cond === 'rain' || wxState.cond === 'storm');
+    return spriteArt(p, mood, (wxState.cond === 'rain' || wxState.cond === 'storm') && !sheltered());
   let art = ART[p.sp](mood, p.asleep, cold);
   if (p.form === 'moody')
     art += `<path d="M148 78 q 40 -30 92 -6 q 6 10 -6 12 q -46 12 -86 2 q -8 -2 0 -8 z" fill="#46395a"/>
@@ -1211,19 +1220,10 @@ function scenery(env) {
       out += pos(`<span class="butterfly" style="display:inline-block">${butterflySVG('#f79ec0','#ffc7dd')}</span>`, 'bottom:30%; left:14%;');
       out += pos(`<span class="butterfly" style="display:inline-block; animation-delay:-8s">${butterflySVG('#8ad0ff','#c9ecff')}</span>`, 'bottom:38%; left:52%;');
     } else {
-      // bad weather: procedural scene until painted variants exist
+      // painted rainy/snowy backdrops — just drifting clouds for motion
       out = `
         <div class="deco cloud ${cloudMod}" style="top:10%; animation-duration:46s; animation-delay:-8s"></div>
-        <div class="deco cloud ${cloudMod}" style="top:22%; animation-duration:64s; animation-delay:-30s; transform:scale(.7); opacity:.85"></div>
-        <div class="deco cloud ${cloudMod}" style="top:5%;  animation-duration:80s; animation-delay:-55s; transform:scale(.5); opacity:.7"></div>`;
-      out += pos(fluffyTree(1, false), 'bottom:34%; left:2%;');
-      out += pos(fluffyTree(.65, false), 'bottom:38%; right:4%; opacity:.9;');
-      if (!snowy) {
-        const fcols = ['#f79ec0', '#ffd965', '#b8a7f0', '#ff8a5c', '#f7c9d8'];
-        [6, 18, 34, 58, 74, 88].forEach((x, i) =>
-          { out += pos(`<span class="sway" style="display:inline-block; animation-delay:${i * .4}s">${flower(fcols[i % 5])}</span>`, `bottom:${5 + (i % 3) * 9}%; left:${x}%;`); });
-      }
-      [12, 44, 66, 92].forEach((x, i) => { out += pos(grassTuft(), `bottom:${3 + (i % 2) * 13}%; left:${x}%; opacity:.9;`); });
+        <div class="deco cloud ${cloudMod}" style="top:20%; animation-duration:64s; animation-delay:-30s; transform:scale(.7); opacity:.8"></div>`;
     }
   } else if (env === 'grove') {
     out = `<div class="deco moon"><i style="top:12px;left:14px;width:11px;height:11px"></i><i style="top:30px;left:30px;width:7px;height:7px"></i><i style="top:16px;left:36px;width:5px;height:5px"></i></div>
@@ -1242,37 +1242,27 @@ function scenery(env) {
       { out += `<div class="deco firefly" style="top:${t}%; left:${l}; animation-duration:${6 + d}s; animation-delay:${d}s"></div>`; });
     out += `<div class="deco fog" style="bottom:24%"></div><div class="deco fog" style="bottom:10%; animation-delay:-7s; opacity:.09"></div>`;
   } else if (env === 'cove') {
-    const waveCols = gloom || snowy
-      ? ['#9bb5bd','#b3c8ce','#ccd9dc']
-      : ['#8fdce8','#b8ecf2','#d8f4f6'];
-    out = `
-      ${sunHtml ? sunHtml.replace('class="deco sun"', 'class="deco sun" style="right:auto; left:8%"') : ''}
-      <div class="deco cloud ${cloudMod}" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.8"></div>
-      <div class="deco wave" style="--wc:${waveCols[0]}; top:47.5%; animation-duration:${wxState.cond === 'storm' ? 2.5 : 5}s; opacity:.9"></div>
-      <div class="deco wave" style="--wc:${waveCols[1]}; top:52%; animation-duration:${wxState.cond === 'storm' ? 3.5 : 6.5}s; animation-delay:-2s; opacity:.8"></div>
-      <div class="deco wave" style="--wc:${waveCols[2]}; top:57%; animation-duration:8s; animation-delay:-4s; opacity:.6"></div>`;
-    if (wxState.cond !== 'storm')
-      out += pos(`<span class="bobber" style="display:inline-block">${sailboat()}</span>`, 'top:34%; left:64%;');
-    out += pos(palmTree(), 'bottom:26%; left:-3%;');
-    out += pos(palmTree(), 'bottom:28%; right:-5%; transform:scaleX(-1);');
-    out += pos(shell(), 'bottom:8%; left:22%;');
-    out += pos(shell(), 'bottom:4%; left:64%; transform:rotate(20deg);');
-    out += pos(starfishSVG(), 'bottom:12%; right:12%;');
-    out += pos(starfishSVG(), 'bottom:3%; left:38%; transform:rotate(40deg) scale(.8);');
-    if (!['rain', 'storm'].includes(wxState.cond))
+    if (!gloom && !snowy) {
+      // painted beach — living touches only
+      out = `<div class="deco cloud" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.75"></div>`;
+      out += pos(`<span class="bobber" style="display:inline-block">${sailboat()}</span>`, 'top:44%; left:66%;');
       out += pos(`<span class="crab" style="display:inline-block">${crabSVG()}</span>`, 'bottom:1.5%; left:4%;');
+    } else {
+      // procedural weather scene for the cove until painted variants exist
+      const waveCols = ['#9bb5bd','#b3c8ce','#ccd9dc'];
+      out = `
+        <div class="deco cloud ${cloudMod}" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.8"></div>
+        <div class="deco wave" style="--wc:${waveCols[0]}; top:47.5%; animation-duration:${wxState.cond === 'storm' ? 2.5 : 5}s; opacity:.9"></div>
+        <div class="deco wave" style="--wc:${waveCols[1]}; top:52%; animation-duration:${wxState.cond === 'storm' ? 3.5 : 6.5}s; animation-delay:-2s; opacity:.8"></div>
+        <div class="deco wave" style="--wc:${waveCols[2]}; top:57%; animation-duration:8s; animation-delay:-4s; opacity:.6"></div>`;
+      out += pos(palmTree(), 'bottom:26%; left:-3%;');
+      out += pos(palmTree(), 'bottom:28%; right:-5%; transform:scaleX(-1);');
+    }
   } else if (env === 'cavern') {
-    for (let i = 0; i < 8; i++)
-      out += `<div class="deco star" style="top:${3 + Math.random() * 30}%; left:${Math.random() * 94}%;
+    // painted cavern — just twinkles for life
+    for (let i = 0; i < 6; i++)
+      out += `<div class="deco star" style="top:${8 + Math.random() * 40}%; left:${Math.random() * 94}%;
               width:2px; height:2px; animation-delay:${Math.random() * 3}s"></div>`;
-    out += pos(crystal(1.3, '#b48ae8'), 'bottom:32%; left:2%;');
-    out += pos(crystal(.9, '#8ad0ff'), 'bottom:36%; left:16%;');
-    out += pos(crystal(1.1, '#f79ec0'), 'bottom:33%; right:4%;');
-    out += pos(crystal(.7, '#b48ae8'), 'bottom:38%; right:18%;');
-    out += pos(crystal(.8, '#8ad0ff'), 'bottom:4%; left:40%; opacity:.9;');
-    out += pos(crystal(.55, '#f79ec0'), 'bottom:6%; left:78%;');
-    out += pos(svgDeco(60, 40, '<path d="M0 0 L 12 0 L 6 34 Z M 22 0 L 36 0 L 29 26 Z M 46 0 L 60 0 L 53 30 Z" fill="#2e2050"/>'), 'top:0; left:12%;');
-    out += pos(svgDeco(60, 40, '<path d="M0 0 L 14 0 L 7 28 Z M 26 0 L 40 0 L 33 34 Z" fill="#2e2050"/>'), 'top:0; right:8%;');
   } else if (env === 'hollow') {
     out += pos(bigShroom(1.2, '#e8734f'), 'bottom:30%; left:-2%;');
     out += pos(bigShroom(.8, '#b48ae8'), 'bottom:34%; left:20%; opacity:.9;');
@@ -1285,14 +1275,11 @@ function scenery(env) {
     [[58,'26%',1],[70,'62%',3]].forEach(([t, l, d]) =>
       { out += `<div class="deco firefly" style="top:${t}%; left:${l}; animation-duration:${6 + d}s; animation-delay:${d}s"></div>`; });
   } else if (env === 'ember') {
-    out = `<div class="deco moon" style="opacity:.6"></div>`;
-    for (let i = 0; i < 5; i++)
-      out += `<div class="deco steam" style="bottom:${30 + Math.random() * 8}%; left:${8 + Math.random() * 78}%;
-              animation-duration:${5 + Math.random() * 4}s; animation-delay:${Math.random() * 4}s"></div>`;
-    out += pos(svgDeco(90, 40, '<ellipse cx="24" cy="28" rx="24" ry="12" fill="#5a4048"/><ellipse cx="62" cy="30" rx="26" ry="11" fill="#4d363e"/>'), 'bottom:38%; left:4%;');
-    out += pos(svgDeco(90, 40, '<ellipse cx="28" cy="28" rx="26" ry="12" fill="#5a4048"/><ellipse cx="64" cy="30" rx="22" ry="10" fill="#4d363e"/>'), 'bottom:39%; right:2%;');
-    out += pos(svgDeco(50, 60, '<rect x="21" y="18" width="8" height="42" rx="4" fill="#8a6248"/><rect x="10" y="2" width="30" height="22" rx="6" fill="#e8734f"/><rect x="14" y="6" width="22" height="14" rx="4" fill="#ffd965"/>'), 'bottom:40%; left:30%;');
-    out += pos(svgDeco(50, 60, '<rect x="21" y="18" width="8" height="42" rx="4" fill="#8a6248"/><rect x="10" y="2" width="30" height="22" rx="6" fill="#e8734f"/><rect x="14" y="6" width="22" height="14" rx="4" fill="#ffd965"/>'), 'bottom:40%; right:28%;');
+    // painted hot spring — rising steam over the painted side pools
+    [[24, 5], [30, 88], [27, 12], [26, 82]].forEach(([b, l], i) => {
+      out += `<div class="deco steam" style="bottom:${b}%; left:${l}%;
+              animation-duration:${5 + i * 1.3}s; animation-delay:${i * 1.1}s"></div>`;
+    });
   }
   // dragon campfire when it's cold (any home env)
   if (wxState.cold && S.pets.some(p => p.sp === 'dragon'))
@@ -1353,9 +1340,12 @@ function fetchAutoWx() {
   }, () => {}, { timeout: 8000, maximumAge: 600000 });
 }
 
+const sheltered = () => S.mode === 'home' && S.env === 'cavern';   // underground: no weather inside
+
 function renderWx() {
   const w = $('#wx');
   let html = '';
+  if (sheltered()) { w.innerHTML = ''; return; }
   if (wxState.cond === 'rain' || wxState.cond === 'storm') {
     for (let i = 0; i < 18; i++)
       html += `<div class="drop" style="left:${Math.random() * 98}%; animation-duration:${.7 + Math.random() * .5}s; animation-delay:${Math.random() * 1.2}s"></div>`;
@@ -1792,6 +1782,10 @@ $('#modalBox').addEventListener('click', e => {
   }
 });
 
+// env changes move between sheltered/exposed spaces — re-render weather too
+const _renderStage = renderStage;
+renderStage = function () { _renderStage(); renderWx(); };
+
 /* ---------- pickups ---------- */
 function spawnPickup(emoji, reward, cap) {
   if (stage.querySelectorAll('.pickup').length >= (cap || 3)) return;
@@ -1990,7 +1984,7 @@ setInterval(() => {
   if (wxState.cond === 'storm' && Math.random() < 0.09) spawnLightning();
 
   // snow builds up on the ground while it snows, melts away after
-  if (wxState.cond === 'snow' && S.mode === 'home') S.snow = Math.min(1, (S.snow || 0) + 1/90);
+  if (wxState.cond === 'snow' && S.mode === 'home' && !sheltered()) S.snow = Math.min(1, (S.snow || 0) + 1/90);
   else S.snow = Math.max(0, (S.snow || 0) - 1/40);
   const sg = $('#snowGround');
   sg.style.transform = `scaleY(${S.snow})`;
