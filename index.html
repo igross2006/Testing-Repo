@@ -1014,7 +1014,7 @@ const SPRITES = {};
     walk: [b + 'walk1.webp', b + 'walk2.webp', b + 'walk3.webp'],
     fire: b + 'fire.webp', pounce: b + 'pounce.webp'
   };
-  if (sp !== 'unicorn') SPRITES[sp].umbrella = b + 'umbrella.webp';   // Fern's is still to come
+  SPRITES[sp].umbrella = b + 'umbrella.webp';
 });
 function preloadSprites(sp) {
   if (!SPRITES[sp]) return;
