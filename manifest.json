@@ -1,0 +1,12 @@
+{
+  "name": "Mythlings",
+  "short_name": "Mythlings",
+  "description": "Cute mythical pocket pets — hatch, cuddle, and collect.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#241f3a",
+  "theme_color": "#322b4d",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
