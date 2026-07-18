@@ -1,4 +1,4 @@
-const CACHE = 'mythlings-v2';
+const CACHE = 'mythlings-v3';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {

@@ -30,7 +30,7 @@
   header .title { font-weight: 800; letter-spacing: .03em; font-size: 1.05rem; }
   header .spacer { flex: 1; }
   .chip {
-    background: rgba(255,255,255,.12); border: none; color: #ffd9a0;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.09); color: #ffd9a0;
     border-radius: 999px; padding: 6px 12px; font-size: .9rem; font-weight: 700;
     font-family: inherit;
   }
@@ -45,6 +45,7 @@
   }
   #scenery { position: absolute; inset: 0; pointer-events: none; }
   #scenery svg { display: block; }
+  #stage.env-phone  { background: linear-gradient(180deg,#20194a 0%,#3a2c66 48%,#241f3a 100%); }
   #stage.env-meadow { background: linear-gradient(180deg,#8fd0ff 0%,#c8ecff 40%,#e8f9ff 52%,#a8dd8e 52%,#8fce77 100%); }
   #stage.env-grove  { background: linear-gradient(180deg,#131033 0%,#282052 46%,#3a2c66 56%,#1f3a2d 56%,#14281d 100%); }
   #stage.env-cove   { background: linear-gradient(180deg,#6ecbe8 0%,#aee6f2 38%,#d8f4f6 50%,#7fd8e8 50%,#a9e6ef 62%,#f6e3b0 62%,#eed49a 100%); }
@@ -141,6 +142,46 @@
     54% { transform: translateX(46vw) scaleX(-1); } 100% { transform: translateX(-70px) scaleX(-1); }
   }
   .shroomGlow { filter: drop-shadow(0 0 6px #9fe8c8); }
+  .vig { position: absolute; inset: 0; pointer-events: none;
+         box-shadow: inset 0 -46px 60px -34px rgba(0,0,0,.28), inset 0 34px 54px -34px rgba(255,255,255,.07); }
+
+  /* ---------- phone playground ---------- */
+  .pStatus {
+    position: absolute; top: 8px; left: 0; right: 0; z-index: 1;
+    display: flex; justify-content: space-between; padding: 0 18px;
+    font-size: .75rem; font-weight: 700; opacity: .92;
+  }
+  .iconGrid {
+    position: absolute; top: 8.5%; left: 6%; right: 6%; z-index: 1;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 10px;
+    pointer-events: auto;
+  }
+  .appIcon {
+    aspect-ratio: 1; border: none; border-radius: 24%; font-family: inherit; color: #f6efe3;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    font-size: clamp(20px, 7.5vw, 34px);
+    background: linear-gradient(160deg, rgba(255,255,255,.24), rgba(255,255,255,.08));
+    box-shadow: 0 4px 10px rgba(0,0,0,.3);
+  }
+  .appIcon .lbl { font-size: .56rem; font-weight: 600; opacity: .85; }
+  .appIcon.trembling { animation: tremble .3s linear infinite; }
+  @keyframes tremble { 25% { transform: rotate(-2.5deg); } 75% { transform: rotate(2.5deg); } }
+  .appIcon.bitten {
+    -webkit-mask: radial-gradient(circle 19px at 86% 12%, transparent 18px, #000 19px);
+    mask: radial-gradient(circle 19px at 86% 12%, transparent 18px, #000 19px);
+    transform: rotate(-5deg); opacity: .8; animation: none;
+  }
+  .dock {
+    position: absolute; left: 4%; right: 4%; bottom: 2%; height: 16%;
+    border-radius: 22px; background: rgba(255,255,255,.1);
+  }
+  .petCard.lunge .creature { animation: lunge .6s ease-out; }
+  @keyframes lunge {
+    30% { transform: translateY(-48px) scale(1.05,.95) rotate(-4deg); }
+    60% { transform: translateY(0) scale(.95,1.06); }
+  }
+  .petCard.squish .creature { animation: squishA .35s ease-out; }
+  @keyframes squishA { 40% { transform: scale(1.09,.89) translateY(3px); } }
 
   /* ---------- speech bubble ---------- */
   #bubble {
@@ -155,12 +196,14 @@
   #bubble.show { opacity: 1; }
 
   /* ---------- pets (wandering) ---------- */
-  #pets { position: absolute; inset: 0; z-index: 3; }
+  #pets { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
   .petCard {
     position: absolute; text-align: center;
     transform: translateX(-50%);
     transition: width .3s;
+    pointer-events: auto;
   }
+  .eggCard { pointer-events: auto; }
   .petCard.active { width: min(46vw, 205px); z-index: 5; }
   .petCard:not(.active) { width: min(27vw, 118px); opacity: .95; z-index: 3; }
   .flipWrap { display: block; transition: transform .25s; }
@@ -301,6 +344,7 @@
   <span class="title">🐉 Mythlings</span>
   <span class="spacer"></span>
   <button class="chip" id="btnEgg" hidden>🥚 50✨</button>
+  <button class="chip" id="btnPhone">📱</button>
   <button class="chip" id="btnEnv">🏞️</button>
   <span class="chip">✨ <span id="giggles">0</span></span>
 </header>
@@ -394,12 +438,13 @@ const EGG_COST = 50, MAX_PETS = 3, EGG_TAPS = 6;
 /* ============================ state ============================ */
 
 function freshState() {
-  return { giggles: 20, pets: [], active: 0, env: 'meadow',
+  return { giggles: 20, pets: [], active: 0, env: 'meadow', mode: 'home',
            unlocked: ['meadow'], egg: { taps: 0 }, last: Date.now(), greeted: false };
 }
 let S;
 try { S = JSON.parse(localStorage.getItem('mythlings')); } catch (e) {}
 if (!S || !Array.isArray(S.pets)) S = freshState();
+if (!S.mode) S.mode = 'home';
 S.pets.forEach((p, i) => {                  // migrate saves from before wandering
   if (p.x == null) { p.x = 25 + i * 25; p.tx = p.x; p.dir = 1; }
 });
@@ -497,7 +542,7 @@ function dragonArt(mood, asleep) {
           fill="url(#gWing)" stroke="#e393b8" stroke-width="4" stroke-linejoin="round"/>
     <path d="M304 244 Q 288 262 278 282 M 284 240 Q 276 258 272 276" fill="none" stroke="#e393b8" stroke-width="2.5" opacity=".7"/>
   </g>
-  <ellipse cx="200" cy="300" rx="80" ry="70" fill="url(#gDrag)"/>
+  <ellipse cx="200" cy="300" rx="80" ry="70" fill="url(#gDrag)" stroke="#57b183" stroke-width="3"/>
   <ellipse cx="200" cy="315" rx="52" ry="46" fill="url(#gBelly)"/>
   <path d="M162 300 q 38 12 76 0 M 158 322 q 42 13 84 0 M 162 344 q 38 12 76 0"
         fill="none" stroke="#e0cfa0" stroke-width="3" opacity=".8"/>
@@ -505,7 +550,7 @@ function dragonArt(mood, asleep) {
   <ellipse cx="248" cy="362" rx="24" ry="15" fill="#5cbf8b"/>
   <ellipse cx="144" cy="358" rx="4.5" ry="3.5" fill="#a8e6c0"/><ellipse cx="156" cy="360" rx="4.5" ry="3.5" fill="#a8e6c0"/>
   <ellipse cx="240" cy="358" rx="4.5" ry="3.5" fill="#a8e6c0"/><ellipse cx="252" cy="360" rx="4.5" ry="3.5" fill="#a8e6c0"/>
-  <circle cx="200" cy="170" r="92" fill="url(#gDrag)"/>
+  <circle cx="200" cy="170" r="92" fill="url(#gDrag)" stroke="#57b183" stroke-width="3"/>
   <path d="M146 96 Q 138 66 158 62 Q 172 78 166 100 Z" fill="#fdf6de" stroke="#e8d9a8" stroke-width="3"/>
   <path d="M254 96 Q 262 66 242 62 Q 228 78 234 100 Z" fill="#fdf6de" stroke="#e8d9a8" stroke-width="3"/>
   <path d="M184 84 q 6 -14 14 -2 z M 202 80 q 6 -14 14 -2 z" fill="#fdf6de" stroke="#e8d9a8" stroke-width="2.5"/>
@@ -530,7 +575,7 @@ function phoenixArt(mood, asleep) {
   <path d="M148 362 Q 120 392 132 398 Q 156 398 166 376 Z" fill="url(#gFlame)" opacity=".9"/>
   <path d="M252 362 Q 280 392 268 398 Q 244 398 234 376 Z" fill="url(#gFlame)" opacity=".9"/>
   ${flame(200, 64, 20, '')}${flame(168, 46, 15, 'f2')}${flame(232, 46, 15, 'f3')}
-  <circle cx="200" cy="250" r="125" fill="url(#gPhx)"/>
+  <circle cx="200" cy="250" r="125" fill="url(#gPhx)" stroke="#e0854f" stroke-width="3"/>
   <g class="wingF">
     <path d="M92 260 Q 58 290 78 320 Q 106 310 114 284 Z" fill="#ffd965" stroke="#f2a25c" stroke-width="4" stroke-linejoin="round"/>
     <path d="M80 296 q 12 4 24 -4 M 76 308 q 12 6 26 -4" fill="none" stroke="#f2a25c" stroke-width="3" opacity=".8"/>
@@ -563,7 +608,7 @@ function krakenArt(mood, asleep) {
   return `
   <ellipse cx="200" cy="392" rx="105" ry="15" fill="#000" opacity=".18"/>
   ${tent(118,-14,0)}${tent(152,-6,1)}${tent(186,-2,2)}${tent(214,2,3)}${tent(248,6,4)}${tent(282,14,5)}
-  <circle cx="200" cy="205" r="118" fill="url(#gKrk)"/>
+  <circle cx="200" cy="205" r="118" fill="url(#gKrk)" stroke="#8471cf" stroke-width="3"/>
   <ellipse cx="200" cy="282" rx="82" ry="40" fill="url(#gKrk)"/>
   <ellipse cx="200" cy="150" rx="34" ry="18" fill="#ffffff" opacity=".25"/>
   <circle cx="136" cy="130" r="9" fill="#9d8ade" opacity=".7"/>
@@ -587,13 +632,20 @@ function creatureSVG(p) {
   return `<svg class="creature" viewBox="0 0 400 410"><defs>${GRADS}</defs>${ART[p.sp](mood, p.asleep)}</svg>`;
 }
 
-const eggSVG = `
+function eggSVG(taps) {
+  return `
   <svg viewBox="0 0 200 230"><defs>${GRADS}</defs>
   <ellipse cx="100" cy="205" rx="62" ry="11" fill="#000" opacity=".18"/>
   <ellipse cx="100" cy="120" rx="68" ry="88" fill="url(#gEgg)" stroke="#d6bde4" stroke-width="4"/>
   <circle cx="78" cy="90" r="7" fill="#d6bde4"/><circle cx="122" cy="132" r="9" fill="#cfc4e8"/>
   <circle cx="94" cy="160" r="5" fill="#d6bde4"/><circle cx="126" cy="76" r="5" fill="#cfc4e8"/>
+  <g stroke="#a884c2" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M64 78 l 13 15 l -9 13 l 15 11" opacity="${taps >= 2 ? 1 : 0}"/>
+    <path d="M136 100 l -13 12 l 10 13 l -8 9" opacity="${taps >= 4 ? 1 : 0}"/>
+    <path d="M92 182 l 11 -15 l 13 7 l 9 -11" opacity="${taps >= 5 ? 1 : 0}"/>
+  </g>
   </svg>`;
+}
 
 /* ====================== scenery ====================== */
 
@@ -672,7 +724,31 @@ function starfishSVG() {
 
 function pos(html, style) { return `<div class="deco" style="${style}">${html}</div>`; }
 
+/* ---------- phone playground data ---------- */
+const APPS = [
+  ['🌄','Photos'],['✉️','Mail'],['🎵','Music'],['🗺️','Maps'],
+  ['📷','Camera'],['⛅','Weather'],['⏰','Clock'],['📝','Notes'],
+  ['🎮','Games'],['💬','Chat'],['🍕','Pizza'],['🏦','Bank']
+];
+const bitten = new Map();   // icon index -> restore timestamp (session-only)
+const BITES = {
+  dragon:  ["Sprout bit {app}! Verdict: crunchy, slightly pixelated.",
+            "Sprout is hoarding {app} now. It's shiny and his."],
+  phoenix: ["Cinder lightly toasted {app} before eating it. Gourmet.",
+            "Cinder took ONE dramatic bite of {app} and swooned. She's fine."],
+  kraken:  ["Inky wrapped four arms around {app}. It joins the collection.",
+            "Inky left polite ink graffiti on {app}: “yum.”"]
+};
+
 function scenery(env) {
+  if (env === 'phone') {
+    const d = new Date(), hr = d.getHours() % 12 || 12,
+          mn = String(d.getMinutes()).padStart(2, '0'), ap = d.getHours() < 12 ? 'AM' : 'PM';
+    const icons = APPS.map(([g, n], i) =>
+      `<button class="appIcon ${bitten.has(i) ? 'bitten' : ''}" data-app="${i}">${g}<span class="lbl">${n}</span></button>`).join('');
+    return `<div class="pStatus"><span>${hr}:${mn} ${ap}</span><span>📶 🔋 87%</span></div>
+      <div class="iconGrid">${icons}</div><div class="dock"></div>`;
+  }
   if (env === 'meadow') {
     let out = `
       <div class="deco sun"><div class="rays">${'<span style="transform:rotate(0deg)"></span><span style="transform:rotate(30deg)"></span><span style="transform:rotate(60deg)"></span><span style="transform:rotate(90deg)"></span><span style="transform:rotate(120deg)"></span><span style="transform:rotate(150deg)"></span>'}</div><div class="core"></div></div>
@@ -732,8 +808,9 @@ const stage = $('#stage'), petsEl = $('#pets'), fx = $('#fx');
 function isNight() { const h = new Date().getHours(); return h >= 20 || h < 6; }
 
 function renderStage() {
-  stage.className = 'env-' + S.env + (isNight() ? ' night' : '');
-  $('#scenery').innerHTML = scenery(S.env);
+  const key = S.mode === 'phone' ? 'phone' : S.env;
+  stage.className = 'env-' + key + (isNight() && key !== 'phone' ? ' night' : '');
+  $('#scenery').innerHTML = scenery(key) + '<div class="vig"></div>';
 }
 
 function renderPets() {
@@ -744,7 +821,7 @@ function renderPets() {
       <span class="flipWrap" style="transform:${p.dir < 0 ? 'scaleX(-1)' : 'none'}">${creatureSVG(p)}</span>
       <span class="petName">${SPECIES[p.sp].name}</span></div>`;
   });
-  if (S.egg) html += `<div class="eggCard" id="eggCard">${eggSVG}<span class="petName">??? egg</span></div>`;
+  if (S.egg) html += `<div class="eggCard" id="eggCard">${eggSVG(S.egg.taps)}<span class="petName">??? egg</span></div>`;
   petsEl.innerHTML = html;
 }
 
@@ -777,6 +854,7 @@ function renderAll(force) {
 setInterval(() => {                                    // pick new destinations
   S.pets.forEach(p => {
     if (p.asleep) { p.tx = p.x; return; }
+    if (p.biteTarget != null) return;
     if (Math.abs((p.tx ?? p.x) - p.x) < 1 && Math.random() < 0.18)
       p.tx = 12 + Math.random() * 76;
   });
@@ -852,8 +930,11 @@ function tapEgg(el) {
 
 let petting = false, lastX = 0, lastY = 0, strokeAcc = 0;
 petsEl.addEventListener('pointerdown', e => {
-  if (!e.target.closest('.petCard.active')) return;
+  const card = e.target.closest('.petCard.active');
+  if (!card) return;
   petting = true; lastX = e.clientX; lastY = e.clientY; strokeAcc = 0;
+  card.classList.add('squish');
+  setTimeout(() => card.classList.remove('squish'), 400);
 });
 addEventListener('pointerup', () => petting = false);
 addEventListener('pointercancel', () => petting = false);
@@ -901,6 +982,24 @@ $('#btnEgg').addEventListener('click', () => {
   renderAll(); save();
 });
 
+/* ---------- phone playground toggle ---------- */
+$('#btnPhone').addEventListener('click', () => {
+  S.mode = S.mode === 'phone' ? 'home' : 'phone';
+  toast(S.mode === 'phone' ? '📱 Phone playground! Hungry pets may snack on your apps…'
+                           : '🏞️ Back home!');
+  renderStage(); renderAll(true); save();
+});
+
+// tap a chomped app to fix it
+$('#scenery').addEventListener('click', e => {
+  const ic = e.target.closest('.appIcon');
+  if (!ic || !ic.classList.contains('bitten')) return;
+  bitten.delete(+ic.dataset.app);
+  ic.classList.remove('bitten');
+  toast(`You fixed ${APPS[+ic.dataset.app][1]}! 🔧`);
+  buzz(12);
+});
+
 /* ---------- environment modal ---------- */
 $('#btnEnv').addEventListener('click', () => { renderEnvList(); $('#modal').classList.add('open'); });
 $('#modal').addEventListener('click', e => { if (e.target === $('#modal')) $('#modal').classList.remove('open'); });
@@ -922,7 +1021,7 @@ $('#envList').addEventListener('click', e => {
     S.giggles -= ENVS[k].cost; S.unlocked.push(k);
     toast(`🏡 ${ENVS[k].name} unlocked!`);
   }
-  S.env = k;
+  S.env = k; S.mode = 'home';
   $('#modal').classList.remove('open');
   renderStage(); renderAll(true); save();
 });
@@ -947,9 +1046,54 @@ function spawnPickup(emoji, reward, msg) {
 
 /* ====================== game loop ====================== */
 
+function chompIcon(p, pi, el) {
+  const i = +el.dataset.app;
+  bitten.set(i, Date.now() + 25000);
+  el.classList.remove('trembling');
+  el.classList.add('bitten');
+  const card = petsEl.querySelector(`.petCard[data-i="${pi}"]`);
+  if (card) { card.classList.add('lunge'); setTimeout(() => card.classList.remove('lunge'), 700); }
+  const r = stage.getBoundingClientRect(), br = el.getBoundingClientRect();
+  particle('🦷', br.left - r.left + br.width / 2, br.top - r.top + br.height / 2);
+  particle('nom!', br.left - r.left + br.width, br.top - r.top);
+  p.food = clamp(p.food + 8); p.happy = clamp(p.happy + 2);
+  speak(rnd(BITES[p.sp]).replace('{app}', APPS[i][1]));
+  buzz([20, 40, 20]);
+  p.biteTarget = null;
+  save();
+}
+
+function tickPlayground() {
+  const now = Date.now();
+  for (const [i, exp] of bitten) {
+    if (exp < now) {
+      bitten.delete(i);
+      const el = stage.querySelector(`.appIcon[data-app="${i}"]`);
+      if (el) el.classList.remove('bitten');
+    }
+  }
+  S.pets.forEach((p, pi) => {
+    if (p.asleep) { p.biteTarget = null; return; }
+    if (p.biteTarget == null && p.food < 70 && Math.random() < 0.15) {
+      const avail = APPS.map((_, i) => i).filter(i => !bitten.has(i));
+      if (avail.length) p.biteTarget = rnd(avail);
+    }
+    if (p.biteTarget != null) {
+      const el = stage.querySelector(`.appIcon[data-app="${p.biteTarget}"]`);
+      if (!el || bitten.has(p.biteTarget)) { p.biteTarget = null; return; }
+      const r = stage.getBoundingClientRect(), br = el.getBoundingClientRect();
+      const ix = ((br.left + br.width / 2 - r.left) / r.width) * 100;
+      p.tx = ix;
+      el.classList.add('trembling');
+      if (Math.abs(p.x - ix) < 7) chompIcon(p, pi, el);
+    }
+  });
+}
+
 let dramaTimer = 0;
 setInterval(() => {
   S.pets.forEach(p => tickPet(p, 1));
+  if (S.mode === 'phone') tickPlayground();
 
   if (S.pets.some(p => !p.asleep && p.happy > 65) && Math.random() < 0.09)
     spawnPickup('✨', 2);
