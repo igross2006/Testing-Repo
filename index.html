@@ -353,6 +353,44 @@
   }
   .petCard.asleep .spriteBox img { filter: brightness(.88); }
 
+  /* ---------- mini-games ---------- */
+  #miniGame {
+    position: absolute; inset: 0; z-index: 12;
+    background: rgba(24,20,45,.93); display: flex; flex-direction: column;
+  }
+  #miniGame[hidden] { display: none; }
+  .mgTop { display: flex; gap: 8px; align-items: center; padding: 10px 12px; font-weight: 800; }
+  #mgInfo { font-weight: 700; color: #ffd9a0; font-size: .92rem; }
+  #mgArea { position: relative; flex: 1; overflow: hidden; touch-action: none; }
+  .mgItem { position: absolute; font-size: 2rem; pointer-events: none; will-change: transform; }
+  .mgPet { position: absolute; bottom: 8px; width: 92px; transform: translateX(-50%); pointer-events: none; }
+  .mgPet img { width: 100%; }
+  .mgBubble {
+    position: absolute; width: 62px; height: 62px; border-radius: 50%; border: none;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.9), rgba(138,208,255,.3) 55%, rgba(138,208,255,.12));
+    box-shadow: inset 0 0 12px rgba(255,255,255,.35);
+    font-size: 1.5rem; color: #fff; will-change: transform;
+  }
+  .mgBubble.gold { background: radial-gradient(circle at 35% 30%, rgba(255,250,220,.95), rgba(255,217,101,.45) 55%, rgba(255,217,101,.2)); }
+  .mgCardGrid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    padding: 14px; max-width: 340px; margin: 0 auto;
+  }
+  .mgCard {
+    aspect-ratio: .82; border: none; border-radius: 14px; font-size: 1.9rem;
+    background: rgba(255,255,255,.13); font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mgCard img { width: 84%; pointer-events: none; }
+  .mgCard.matched { opacity: .4; }
+  .mgResult {
+    position: absolute; inset: 0; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    background: rgba(24,20,45,.88); text-align: center; padding: 20px;
+  }
+  .mgResult h2 { margin: 0; font-size: 1.5rem; }
+  .mgResult .act { max-width: 200px; width: 70%; }
+
   /* ---------- hatch cinematic ---------- */
   #hatchFx { position:absolute; inset:0; z-index:10; display:none; align-items:center;
     justify-content:center; flex-direction:column; gap:10px; pointer-events:none; }
@@ -518,10 +556,19 @@
   <div id="fx"></div>
   <div id="notif"></div>
   <div id="hatchFx"><div class="flashW"></div><div class="sil dark"></div><div class="banner"></div></div>
+  <div id="miniGame" hidden>
+    <div class="mgTop">
+      <span id="mgTitle"></span><span class="spacer"></span>
+      <span id="mgInfo"></span>
+      <button class="chip" id="mgQuit">✖</button>
+    </div>
+    <div id="mgArea"></div>
+  </div>
 </div>
 
 <div id="actions">
   <button class="act" id="btnFeed">🍪 Feed</button>
+  <button class="act" id="btnGames">🎮 Games</button>
   <button class="act" id="btnSleep">🌙 Sleep</button>
 </div>
 
@@ -1809,6 +1856,12 @@ $('#modalBox').addEventListener('click', e => {
     renderAll(); save();
     return;
   }
+  const gm = e.target.closest('[data-game]');
+  if (gm) {
+    $('#modal').classList.remove('open');
+    ({ snack: startSnack, bubble: startBubble, pairs: startPairs })[gm.dataset.game]();
+    return;
+  }
   const wx = e.target.closest('[data-wx]');
   if (wx) {
     S.wxMode = wx.dataset.wx;
@@ -1822,6 +1875,199 @@ $('#modalBox').addEventListener('click', e => {
 // env changes move between sheltered/exposed spaces — re-render weather too
 const _renderStage = renderStage;
 renderStage = function () { _renderStage(); renderWx(); };
+
+/* ====================== mini-games ====================== */
+
+const MG = { ints: [], current: null };
+const mgArea = $('#mgArea');
+const mgInt = (fn, ms) => { const i = setInterval(fn, ms); MG.ints.push(i); return i; };
+function mgStop() { MG.ints.forEach(clearInterval); MG.ints = []; }
+function mgOpen(title, fn) {
+  MG.current = fn;
+  $('#mgTitle').textContent = title;
+  $('#mgInfo').textContent = '';
+  mgArea.innerHTML = '';
+  $('#miniGame').hidden = false;
+}
+function mgClose() { mgStop(); $('#miniGame').hidden = true; }
+$('#mgQuit').addEventListener('click', mgClose);
+
+function mgFloat(txt, x, y) {
+  const s = document.createElement('span');
+  s.className = 'float'; s.textContent = txt;
+  s.style.left = x + 'px'; s.style.top = y + 'px'; s.style.zIndex = 3;
+  mgArea.appendChild(s); setTimeout(() => s.remove(), 1300);
+}
+
+function mgEnd(title, score, giggles, extra) {
+  mgStop();
+  S.giggles += giggles;
+  if (!S.best) S.best = {};
+  const key = MG.current.mgKey;
+  const isBest = !S.best[key] || score > S.best[key];
+  if (isBest) S.best[key] = score;
+  const p = S.pets[S.active];
+  if (p) { p.happy = clamp(p.happy + 6); p.xp = (p.xp || 0) + 3; checkEvolve(p); }
+  save(); renderHUD();
+  sFanfare(); buzz([30, 50, 30]);
+  const r = document.createElement('div');
+  r.className = 'mgResult';
+  r.innerHTML = `<h2>${title}</h2>
+    <div>⭐ Score: <b>${score}</b>${isBest && score > 0 ? ' · new best!' : ''}</div>
+    <div>+${giggles} ✨${extra ? ' · ' + extra : ''}</div>
+    <button class="act" data-mgagain>Play again</button>
+    <button class="act" data-mgdone>Done</button>`;
+  mgArea.appendChild(r);
+}
+mgArea.addEventListener('click', e => {
+  if (e.target.closest('[data-mgagain]')) { mgArea.innerHTML = ''; MG.current(); }
+  else if (e.target.closest('[data-mgdone]')) mgClose();
+});
+
+/* ---- 1. Snack Storm: drag your pet to catch falling treats ---- */
+function startSnack() {
+  mgOpen('🍪 Snack Storm', startSnack);
+  const W = mgArea.clientWidth, H = mgArea.clientHeight;
+  let score = 0, lives = 3, t = 45, petX = W / 2, items = [], speed = 170;
+  const p = S.pets[S.active], sp = p && SPRITES[p.sp] ? p.sp : 'dragon';
+  const pet = document.createElement('div');
+  pet.className = 'mgPet';
+  pet.innerHTML = `<img src="${SPRITES[sp].happy}">`;
+  pet.style.left = petX + 'px';
+  mgArea.appendChild(pet);
+  const info = () => $('#mgInfo').textContent = `⏱${t}  ${'❤️'.repeat(lives)}  ⭐${score}`;
+  info();
+  const track = e => { petX = Math.max(30, Math.min(W - 30, e.clientX - mgArea.getBoundingClientRect().left)); };
+  mgArea.addEventListener('pointermove', track);
+  mgArea.addEventListener('pointerdown', track);
+  mgInt(() => {
+    const bad = Math.random() < .16;
+    const el = document.createElement('span');
+    el.className = 'mgItem';
+    el.textContent = bad ? '🪨' : rnd(['🍪', '🍓', '🍎', '🧁', '🍕']);
+    const it = { el, x: 30 + Math.random() * (W - 60), y: -34, v: speed + Math.random() * 60, bad };
+    el.style.left = it.x + 'px';
+    mgArea.appendChild(el);
+    items.push(it);
+    speed = Math.min(300, speed + 2);
+  }, 620);
+  mgInt(() => {
+    pet.style.left = petX + 'px';
+    items.forEach(it => {
+      it.y += it.v * .033;
+      it.el.style.transform = `translateY(${it.y}px)`;
+      if (!it.done && it.y > H - 104) {
+        if (Math.abs(it.x - petX) < 54) {
+          it.done = true; it.el.remove();
+          if (it.bad) {
+            lives--; buzz(60); sRumble(); mgFloat('💥', it.x, H - 120);
+            if (lives <= 0) { items.forEach(q => q.el.remove()); mgEnd('Ouch! Rocked out', score, score, '🍖 +10 snack bonus'); if (S.pets[S.active]) S.pets[S.active].food = clamp(S.pets[S.active].food + 10); }
+          } else {
+            score++; sPop(); buzz(10); mgFloat('+1', it.x, H - 120); info();
+          }
+        } else if (it.y > H) { it.done = true; it.el.remove(); }
+      }
+    });
+    items = items.filter(it => !it.done);
+  }, 33);
+  mgInt(() => {
+    t--; info();
+    if (t <= 0) {
+      items.forEach(q => q.el.remove());
+      if (S.pets[S.active]) S.pets[S.active].food = clamp(S.pets[S.active].food + 15);
+      mgEnd('Snack Storm survived!', score, score, '🍖 +15 snack bonus');
+    }
+  }, 1000);
+}
+startSnack.mgKey = 'snack';
+
+/* ---- 2. Bubble Bay: pop the bubbles before they drift away ---- */
+function startBubble() {
+  mgOpen('🫧 Bubble Bay', startBubble);
+  const W = mgArea.clientWidth, H = mgArea.clientHeight;
+  let score = 0, t = 40;
+  const info = () => $('#mgInfo').textContent = `⏱${t}  ⭐${score}`;
+  info();
+  mgInt(() => {
+    const gold = Math.random() < .15;
+    const b = document.createElement('button');
+    b.className = 'mgBubble' + (gold ? ' gold' : '');
+    b.textContent = gold ? '✨' : '';
+    b.style.left = (10 + Math.random() * (W - 80)) + 'px';
+    b.style.bottom = '-70px';
+    const dur = 3.6 + Math.random() * 2.2;
+    b.style.transition = `transform ${dur}s linear`;
+    mgArea.appendChild(b);
+    requestAnimationFrame(() => requestAnimationFrame(() =>
+      b.style.transform = `translateY(-${H + 150}px) translateX(${-30 + Math.random() * 60}px)`));
+    b.addEventListener('click', () => {
+      score += gold ? 3 : 1;
+      sPop(); buzz(10);
+      const r = b.getBoundingClientRect(), a = mgArea.getBoundingClientRect();
+      mgFloat(gold ? '+3' : '+1', r.left - a.left + 14, r.top - a.top);
+      b.remove(); info();
+    }, { once: true });
+    setTimeout(() => b.remove(), dur * 1000 + 200);
+  }, 480);
+  mgInt(() => {
+    t--; info();
+    if (t <= 0) {
+      [...mgArea.querySelectorAll('.mgBubble')].forEach(b => b.remove());
+      mgEnd('Bubble Bay cleared!', score, score, '');
+    }
+  }, 1000);
+}
+startBubble.mgKey = 'bubble';
+
+/* ---- 3. Pair Party: match the Mythlings ---- */
+function startPairs() {
+  mgOpen('🃏 Pair Party', startPairs);
+  let elapsed = 0, pairs = 0, first = null, lock = false;
+  const species = Object.keys(SPRITES);
+  const deck = [...species, ...species].sort(() => Math.random() - .5);
+  const grid = document.createElement('div');
+  grid.className = 'mgCardGrid';
+  grid.innerHTML = deck.map((sp, i) =>
+    `<button class="mgCard" data-c="${i}" data-sp="${sp}">🥚</button>`).join('');
+  mgArea.appendChild(grid);
+  const info = () => $('#mgInfo').textContent = `⏱${elapsed}  ${pairs}/6`;
+  info();
+  const show = c => { c.innerHTML = `<img src="${SPRITES[c.dataset.sp].idle}">`; };
+  const hide = c => { c.textContent = '🥚'; };
+  grid.addEventListener('click', e => {
+    const c = e.target.closest('.mgCard');
+    if (!c || lock || c.classList.contains('matched') || c === first) return;
+    show(c); sPop();
+    if (!first) { first = c; return; }
+    if (first.dataset.sp === c.dataset.sp) {
+      first.classList.add('matched'); c.classList.add('matched');
+      pairs++; buzz(20); info();
+      first = null;
+      if (pairs === 6) {
+        const reward = elapsed <= 40 ? 30 : elapsed <= 70 ? 20 : 12;
+        mgEnd('All pairs found!', Math.max(1, 120 - elapsed), reward, `finished in ${elapsed}s`);
+      }
+    } else {
+      lock = true;
+      const a = first; first = null;
+      setTimeout(() => { hide(a); hide(c); lock = false; }, 750);
+    }
+  });
+  mgInt(() => { elapsed++; info(); }, 1000);
+}
+startPairs.mgKey = 'pairs';
+
+$('#btnGames').addEventListener('click', () => {
+  if (!S.pets.length) return toast('Hatch your egg first! 🥚');
+  const best = S.best || {};
+  openModal(`<h2>Pick a game 🎮</h2>
+    <button class="rowCard" data-game="snack"><span class="preview">🍪</span>
+      <span><div class="nm">Snack Storm</div><div class="st">Catch falling treats, dodge rocks · best ${best.snack || 0}</div></span></button>
+    <button class="rowCard" data-game="bubble"><span class="preview">🫧</span>
+      <span><div class="nm">Bubble Bay</div><div class="st">Pop bubbles — gold ones pay triple · best ${best.bubble || 0}</div></span></button>
+    <button class="rowCard" data-game="pairs"><span class="preview">🃏</span>
+      <span><div class="nm">Pair Party</div><div class="st">Match the Mythlings from memory · best ${best.pairs || 0}</div></span></button>`);
+});
 
 /* ---------- pickups ---------- */
 function spawnPickup(emoji, reward, cap) {
