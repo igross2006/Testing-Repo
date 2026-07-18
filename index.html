@@ -174,6 +174,13 @@
     animation: snowfall linear infinite; }
   @keyframes snowfall { to { transform: translateY(620px) translateX(34px); } }
   .wxDim { position:absolute; inset:0; background: rgba(70,80,110,.22); }
+  #snowGround {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 64px; z-index: 2;
+    pointer-events: none; transform-origin: bottom;
+    transition: transform 1.2s linear, opacity 1.2s linear;
+    transform: scaleY(0); opacity: 0;
+  }
+  #snowGround svg { display: block; width: 100%; height: 100%; }
   .wxFlash { position:absolute; inset:0; background:#fff; opacity:0; animation: flash 7s linear infinite; }
   .wxFlash.f2 { animation-delay: 3.4s; animation-duration: 9s; }
   @keyframes flash { 0%,93%,97%,100% { opacity:0; } 94%,96% { opacity:.55; } 95% { opacity:.15; } }
@@ -454,6 +461,10 @@
 
 <div id="stage" class="env-meadow">
   <div id="scenery"></div>
+  <div id="snowGround"><svg preserveAspectRatio="none" viewBox="0 0 400 60">
+    <path d="M0 20 Q 25 6 50 18 T 100 14 T 150 20 T 200 12 T 250 20 T 300 14 T 350 20 T 400 14 L 400 60 L 0 60 Z" fill="#f2f7fc"/>
+    <path d="M0 34 Q 30 24 60 32 T 140 30 T 220 34 T 300 28 T 400 32 L 400 60 L 0 60 Z" fill="#dde7f0" opacity=".8"/>
+  </svg></div>
   <div id="wx"></div>
   <div id="bubble"></div>
   <div id="pets"></div>
@@ -608,6 +619,7 @@ if (!S.keepsakes) S.keepsakes = {};
 if (S.sound == null) S.sound = true;
 if (!S.wxMode) S.wxMode = 'auto';
 if (S.streak == null) { S.streak = 0; S.lastDay = ''; }
+if (S.snow == null) S.snow = 0;
 S.pets.forEach((p, i) => {
   if (p.x == null) { p.x = 25 + i * 25; p.tx = p.x; p.dir = 1; }
   if (p.fed == null) { p.fed = 0; p.petted = 0; p.xp = 0; }
@@ -1076,6 +1088,22 @@ function starfishSVG() {
   const arm = a => `<ellipse cx="0" cy="-8" rx="3.5" ry="8.5" fill="#f2a25c" transform="rotate(${a} 12 12) translate(12 12)"/>`;
   return svgDeco(24, 24, `${[0,72,144,216,288].map(arm).join('')}<circle cx="12" cy="12" r="4.5" fill="#ffb37a"/>`);
 }
+function snowmanSVG() {
+  return svgDeco(94, 126, `
+    <ellipse cx="47" cy="118" rx="36" ry="8" fill="#fff" opacity=".85"/>
+    <circle cx="47" cy="88" r="28" fill="#ffffff" stroke="#d8e2ec" stroke-width="3"/>
+    <circle cx="47" cy="46" r="20" fill="#ffffff" stroke="#d8e2ec" stroke-width="3"/>
+    <path d="M20 78 q -14 -8 -18 -18 M 74 78 q 14 -8 18 -18" stroke="#8a6248" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <rect x="30" y="56" width="34" height="10" rx="5" fill="#e86a5e"/>
+    <rect x="52" y="60" width="9" height="18" rx="4" fill="#e86a5e"/>
+    <path d="M30 24 q 17 -12 34 0 l -3 -12 q -14 -8 -28 0 z" fill="#8ad0ff"/>
+    <circle cx="47" cy="8" r="6" fill="#fff"/>
+    <circle cx="40" cy="42" r="2.6" fill="#3a2e3d"/><circle cx="54" cy="42" r="2.6" fill="#3a2e3d"/>
+    <path d="M47 47 l 13 4 l -13 3 z" fill="#f2a25c"/>
+    <path d="M41 56 q 6 4 12 0" stroke="#3a2e3d" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <circle cx="47" cy="82" r="3" fill="#3a2e3d"/><circle cx="47" cy="94" r="3" fill="#3a2e3d"/>`);
+}
+
 function campfireSVG() {
   return svgDeco(80, 70, `
     <defs><linearGradient id="cfF" x1="0" y1="1" x2="0" y2="0">
@@ -1217,13 +1245,16 @@ function scenery(env) {
   // dragon campfire when it's cold (any home env)
   if (wxState.cold && S.pets.some(p => p.sp === 'dragon'))
     out += pos(campfireSVG(), 'bottom:5%; left:44%;');
+  // once enough snow has piled up, the Mythlings build a snowman
+  if (snowmanUp)
+    out += pos(snowmanSVG(), 'bottom:9%; right:5%;');
   return out;
 }
 
 /* ====================== weather ====================== */
 
 let wxState = { cond: 'clear', cold: false, hot: false, label: 'Clear' };
-let fireLit = false;
+let fireLit = false, snowmanUp = false;
 
 const WX_PRESETS = {
   auto:  { label: 'Auto (my location)', emoji: '📍' },
@@ -1878,6 +1909,20 @@ setInterval(() => {
     if (i >= 0) { const pp = petHeadPos(i); if (pp) particle('💧', pp.x + 18, pp.y); }
   }
   if (wxState.cond === 'storm' && Math.random() < 0.09) spawnLightning();
+
+  // snow builds up on the ground while it snows, melts away after
+  if (wxState.cond === 'snow' && S.mode === 'home') S.snow = Math.min(1, (S.snow || 0) + 1/90);
+  else S.snow = Math.max(0, (S.snow || 0) - 1/40);
+  const sg = $('#snowGround');
+  sg.style.transform = `scaleY(${S.snow})`;
+  sg.style.opacity = Math.min(1, S.snow * 2.5);
+  sg.style.display = S.mode === 'home' ? '' : 'none';
+  if (!snowmanUp && S.snow > 0.45 && wxState.cond === 'snow') {
+    snowmanUp = true; renderStage();
+    speak('The Mythlings built a snowman!! ⛄');
+  } else if (snowmanUp && S.snow < 0.1) {
+    snowmanUp = false; renderStage();
+  }
 
   // cuddles when two happy pets wander near each other
   const happyPets = S.pets.filter(p => !p.asleep && p.happy > 60);
