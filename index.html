@@ -403,6 +403,23 @@
   .stat.s-happy .fill  { background: linear-gradient(90deg,#f79ec0,#ffc7dd); }
   .stat.s-energy .fill { background: linear-gradient(90deg,#8ad0ff,#c9ecff); }
 
+  /* ---------- pet selector tabs ---------- */
+  #petTabs {
+    display: flex; justify-content: center; gap: 10px; padding: 6px 0 2px;
+  }
+  .ptab {
+    position: relative; width: 46px; height: 46px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.1);
+    padding: 3px; font-family: inherit;
+  }
+  .ptab img { width: 100%; height: 100%; object-fit: contain; }
+  .ptab.on { border-color: #ffd9a0; background: rgba(255,217,160,.18); }
+  .ptab:active { transform: scale(.92); }
+  .ptab .pbadge {
+    position: absolute; right: -4px; top: -4px; font-size: .72rem;
+    background: rgba(20,18,40,.85); border-radius: 999px; padding: 1px 3px;
+  }
+
   /* ---------- modal / toast ---------- */
   #modal {
     position: fixed; inset: 0; z-index: 20; display: none;
@@ -484,6 +501,7 @@
   <div class="stat s-happy">💗 <span class="v"></span><div class="bar"><div class="fill"></div></div></div>
   <div class="stat s-energy">⚡ <span class="v"></span><div class="bar"><div class="fill"></div></div></div>
 </div>
+<div id="petTabs" hidden></div>
 
 <div id="stage" class="env-meadow">
   <div id="scenery"></div>
@@ -1387,6 +1405,16 @@ function renderPets() {
   });
   if (S.egg) html += `<div class="eggCard ${S.egg.rare ? 'rare' : ''}" id="eggCard">${eggSVG(S.egg.taps, S.egg.rare)}<span class="petName">${S.egg.rare ? '✨ rare egg' : '??? egg'}</span></div>`;
   petsEl.innerHTML = html;
+
+  // selector tabs — always reachable even when pets overlap in the scene
+  const tabs = $('#petTabs');
+  tabs.hidden = S.pets.length < 2;
+  tabs.innerHTML = S.pets.map((p, i) => {
+    const badge = p.asleep ? '💤' : creatureMoodSig(p) === 'sad' ? '❗' : '';
+    const face = SPRITES[p.sp] ? `<img src="${SPRITES[p.sp].idle}" alt="">` : KEEPSAKE[p.sp][0];
+    return `<button class="ptab ${i === S.active ? 'on' : ''}" data-t="${i}" title="${petName(p)}">
+      ${face}${badge ? `<span class="pbadge">${badge}</span>` : ''}</button>`;
+  }).join('');
 }
 
 function renderHUD() {
@@ -1521,6 +1549,14 @@ function dailyCheck() {
 }
 
 /* ====================== interactions ====================== */
+
+$('#petTabs').addEventListener('click', e => {
+  const t = e.target.closest('.ptab');
+  if (!t) return;
+  S.active = +t.dataset.t;
+  buzz(10); sPop();
+  renderAll(true); save();
+});
 
 petsEl.addEventListener('click', e => {
   const egg = e.target.closest('#eggCard');
