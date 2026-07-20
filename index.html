@@ -270,6 +270,7 @@
   .petCard.walking .creature { animation: trot .45s ease-in-out infinite; }
   .petCard.asleep .creature { animation-duration: 5.5s; }
   .petCard.sp-wisp .creature { animation-name: hoverFloat; animation-duration: 3.6s; }
+  .petCard.sp-moth .creature { animation-name: hoverFloat; animation-duration: 3.2s; }
   @keyframes hoverFloat {
     0%,100% { transform: translateY(0) rotate(-1.5deg); }
     50%     { transform: translateY(-14px) rotate(1.5deg); }
@@ -691,15 +692,29 @@ const SPECIES = {
       cold:   ["Glim has become the world's smallest campfire. Gather round."],
       hot:    ["Glim insists the heat is 'basically a hug'."]
     }
+  },
+  moth: {
+    name: 'Nutmeg', flavor: 'royal walnut moth', rare: true,
+    lines: {
+      hungry: ["Nutmeg royally decrees it is snack o'clock. The court (you) must obey.",
+               "Nutmeg is far too regal to beg. Nutmeg is absolutely begging."],
+      tired:  ["Nutmeg's royal wings require their beauty rest. Immediately."],
+      sad:    ["Nutmeg has draped both wings over her face. The kingdom mourns."],
+      idle:   ["Nutmeg dusted the air with sparkles! ✨ Very fancy.",
+               "Nutmeg practiced her royal wave for an hour. Flawless."],
+      cold:   ["Nutmeg wrapped up in her wings like a royal blanket. Toasty."],
+      hot:    ["Nutmeg is fanning herself with her own wings. Efficient AND dramatic."]
+    }
   }
 };
 
 const KEEPSAKE = {
   dragon: ['🪙','shiny scale'], phoenix: ['🪶','ember feather'], kraken: ['🍴','collected fork'],
-  unicorn: ['🌸','moss blossom'], pegasus: ['☁️','cloud tuft'], wisp: ['⭐','stray spark']
+  unicorn: ['🌸','moss blossom'], pegasus: ['☁️','cloud tuft'], wisp: ['⭐','stray spark'],
+  moth: ['🥜','lucky walnut']
 };
 const AFFINITY = { dragon:'meadow', phoenix:'ember', kraken:'cove',
-                   unicorn:'hollow', pegasus:'meadow', wisp:'cavern' };
+                   unicorn:'hollow', pegasus:'meadow', wisp:'cavern', moth:'grove' };
 const FORM_BADGE = { chonky:'🍩', zoomy:'⚡', moody:'🌧️', sunny:'🌟' };
 const FORM_NAME  = { chonky:'chonky', zoomy:'zoomies', moody:'moody poet', sunny:'sunshine' };
 
@@ -1088,7 +1103,7 @@ const ART = { dragon: dragonArt, phoenix: phoenixArt, kraken: krakenArt,
 
 /* ---------- sprite art direction (rendered sprite sheets per species) ---------- */
 const SPRITES = {};
-['dragon', 'phoenix', 'kraken', 'unicorn', 'pegasus', 'wisp'].forEach(sp => {
+['dragon', 'phoenix', 'kraken', 'unicorn', 'pegasus', 'wisp', 'moth'].forEach(sp => {
   const b = `assets/${sp}/`;
   SPRITES[sp] = {
     idle: b + 'idle.webp', happy: b + 'happy.webp', sad: b + 'sad.webp', sleep: b + 'sleep.webp',
@@ -1297,7 +1312,9 @@ const BITES = {
   pegasus: ["Puff nibbled {app} and declared it 'fluffy'. It is software.",
             "Puff carried {app} halfway across the sky first. For drama."],
   wisp:    ["Glim absorbed a bite of {app} and glowed a suspicious new color.",
-            "Glim phased THROUGH {app} while biting it. Physics is optional."]
+            "Glim phased THROUGH {app} while biting it. Physics is optional."],
+  moth:    ["Nutmeg took one royal nibble of {app}. It has been knighted.",
+            "Nutmeg dusted {app} with sparkles before biting it. Presentation matters."]
 };
 
 function scenery(env) {
@@ -2096,7 +2113,7 @@ startBubble.mgKey = 'bubble';
 function startPairs() {
   mgOpen('🃏 Pair Party', startPairs);
   let elapsed = 0, pairs = 0, first = null, lock = false;
-  const species = Object.keys(SPRITES);
+  const species = Object.keys(SPRITES).sort(() => Math.random() - .5).slice(0, 6);
   const deck = [...species, ...species].sort(() => Math.random() - .5);
   const grid = document.createElement('div');
   grid.className = 'mgCardGrid';
