@@ -393,6 +393,26 @@
   .mgResult h2 { margin: 0; font-size: 1.5rem; }
   .mgResult .act { max-width: 200px; width: 70%; }
 
+  /* checkers */
+  .ckWrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 10px; }
+  .ckBoard {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    width: min(96%, 440px); aspect-ratio: 1;
+    border-radius: 12px; overflow: hidden; box-shadow: 0 6px 22px rgba(0,0,0,.45);
+  }
+  .ckSq { border: none; padding: 0; display: flex; align-items: center; justify-content: center;
+          font-family: inherit; position: relative; min-width: 0; min-height: 0; }
+  .ckSq.light { background: #e8d9b8; }
+  .ckSq.dark { background: #7a5a44; }
+  .ckSq.sel { outline: 3px solid #ffd965; outline-offset: -3px; }
+  .ckSq.hint { box-shadow: inset 0 0 0 100px rgba(255,217,101,.4); }
+  .pc { width: 80%; aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; position: relative; pointer-events: none; }
+  .pc.you { background: radial-gradient(circle at 35% 30%, #ffe9a8, #f2a25c); border: 2px solid #c47b3a; }
+  .pc.pet { background: rgba(255,255,255,.9); border: 2px solid #5a4a5a; overflow: visible; }
+  .pc.pet img { width: 90%; border-radius: 50%; }
+  .pc b { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); font-size: .78rem; }
+
   /* ---------- hatch cinematic ---------- */
   #hatchFx { position:absolute; inset:0; z-index:10; display:none; align-items:center;
     justify-content:center; flex-direction:column; gap:10px; pointer-events:none; }
@@ -446,15 +466,19 @@
   .stat.s-happy .fill  { background: linear-gradient(90deg,#f79ec0,#ffc7dd); }
   .stat.s-energy .fill { background: linear-gradient(90deg,#8ad0ff,#c9ecff); }
 
-  /* ---------- pet selector tabs ---------- */
+  /* ---------- pet sanctuary tabs (scrolls with a big family) ---------- */
   #petTabs {
-    display: flex; justify-content: center; gap: 10px; padding: 6px 0 2px;
+    display: flex; gap: 10px; padding: 6px 8px 2px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
   }
+  #petTabs::-webkit-scrollbar { display: none; }
   .ptab {
-    position: relative; width: 46px; height: 46px; border-radius: 50%;
+    position: relative; width: 46px; height: 46px; border-radius: 50%; flex: none;
     border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.1);
     padding: 3px; font-family: inherit;
   }
+  .ptab:first-child { margin-left: auto; }
+  .ptab:last-child { margin-right: auto; }
   .ptab img { width: 100%; height: 100%; object-fit: contain; }
   .ptab.on { border-color: #ffd9a0; background: rgba(255,217,160,.18); }
   .ptab:active { transform: scale(.92); }
@@ -695,7 +719,7 @@ const ENVS = {
   ember:  { name: 'Ember Hot Spring',cost: 150, emoji: '♨️' }
 };
 
-const EGG_COST = 50, RARE_EGG_COST = 100, RARE_KEEPSAKES = 2, MAX_PETS = 3, EGG_TAPS = 6;
+const EGG_COST = 50, RARE_EGG_COST = 100, RARE_KEEPSAKES = 2, MAX_PETS = 30, EGG_TAPS = 6;
 
 /* ============================ state ============================ */
 
@@ -771,13 +795,15 @@ function tickPet(p, sec, aff) {
 }
 
 // offline catch-up (capped at 24h) + offline keepsake drops
+// only the pet that was out on stage lives in real time — the sanctuary rests
 {
   const away = Math.min(86400, (Date.now() - (S.last || Date.now())) / 1000);
-  if (away > 60) S.pets.forEach(p => {
+  const p = S.pets[S.active];
+  if (away > 60 && p) {
     tickPet(p, away, false);
     const drops = Math.min(3, Math.floor(away / 3600 * 0.4 * Math.random() * 2));
     if (drops > 0) S.keepsakes[p.sp] = (S.keepsakes[p.sp] || 0) + drops;
-  });
+  }
 }
 
 /* ====================== creature art ====================== */
@@ -1463,16 +1489,18 @@ function renderStage() {
 function renderPets() {
   let html = '';
   const rainyNow = (wxState.cond === 'rain' || wxState.cond === 'storm') && !sheltered();
-  S.pets.forEach((p, i) => {
+  // one pet on stage at a time — the rest rest in the sanctuary (the tab row)
+  const i = S.active, p = S.pets[i];
+  if (p) {
     const badge = p.form ? FORM_BADGE[p.form] + ' ' : '';
     const aff = inAffinity(p) ? ' ♥' : '';
     const flip = SPRITES[p.sp] ? p.dir > 0 : p.dir < 0;   // sprite walk cycles face left natively
     const brolly = rainyNow && !p.asleep && SPRITES[p.sp] && SPRITES[p.sp].umbrella ? 'brolly' : '';
-    html += `<div class="petCard sp-${p.sp} ${brolly} ${i === S.active ? 'active' : ''} ${p.asleep ? 'asleep' : ''}"
-      data-i="${i}" style="left:${p.x}%; bottom:${3 + (i % 3) * 1.5}%">
+    html += `<div class="petCard sp-${p.sp} ${brolly} active ${p.asleep ? 'asleep' : ''}"
+      data-i="${i}" style="left:${p.x}%; bottom:3%">
       <span class="flipWrap" style="transform:${flip ? 'scaleX(-1)' : 'none'}">${creatureSVG(p)}</span>
       <span class="petName">${badge}${petName(p)}${aff}</span></div>`;
-  });
+  }
   if (S.egg) html += `<div class="eggCard ${S.egg.rare ? 'rare' : ''}" id="eggCard">${eggSVG(S.egg.taps, S.egg.rare)}<span class="petName">${S.egg.rare ? '✨ rare egg' : '??? egg'}</span></div>`;
   petsEl.innerHTML = html;
 
@@ -1703,9 +1731,10 @@ function tapEgg(el) {
 function hatch() {
   hatching = true;
   const wantRare = !!S.egg.rare;
-  let pool = Object.keys(SPECIES).filter(k =>
-    SPECIES[k].rare === wantRare && !S.pets.some(p => p.sp === k));
-  if (!pool.length) pool = Object.keys(SPECIES).filter(k => !S.pets.some(p => p.sp === k));
+  const keys = Object.keys(SPECIES);
+  let pool = keys.filter(k => SPECIES[k].rare === wantRare && !S.pets.some(p => p.sp === k));
+  if (!pool.length) pool = keys.filter(k => !S.pets.some(p => p.sp === k));
+  if (!pool.length) pool = keys.filter(k => SPECIES[k].rare === wantRare);   // full set? welcome a sibling
   const sp = rnd(pool);
   preloadSprites(sp);
   const newPet = { sp, food: 85, happy: 85, energy: 85, asleep: false, born: Date.now(),
@@ -1756,16 +1785,6 @@ petsEl.addEventListener('pointermove', e => {
     const r = stage.getBoundingClientRect();
     particle('💗', e.clientX - r.left, e.clientY - r.top);
     buzz(12); sChirp();
-    petBurst++;
-    // jealousy: lots of petting with an audience
-    if (petBurst >= 12 && S.pets.length > 1 && Math.random() < .3) {
-      petBurst = 0;
-      const other = S.pets.find((q, i) => i !== S.active && !q.asleep);
-      if (other) {
-        other.happy = clamp(other.happy - 2);
-        speak(rnd(JEALOUS).replace('{a}', petName(p)).replace(/\{b\}/g, petName(other)));
-      }
-    }
     checkEvolve(p);
     renderHUD();
   }
@@ -1917,7 +1936,7 @@ $('#modalBox').addEventListener('click', e => {
   const gm = e.target.closest('[data-game]');
   if (gm) {
     $('#modal').classList.remove('open');
-    ({ snack: startSnack, bubble: startBubble, pairs: startPairs })[gm.dataset.game]();
+    ({ snack: startSnack, bubble: startBubble, pairs: startPairs, checkers: startCheckers })[gm.dataset.game]();
     return;
   }
 });
@@ -2107,6 +2126,162 @@ function startPairs() {
 }
 startPairs.mgKey = 'pairs';
 
+/* ---- 4. Checkers: a real board game against your pet ---- */
+function startCheckers() {
+  mgOpen('♟️ Checkers', startCheckers);
+  const me = S.pets[S.active];
+  const sp = me && SPRITES[me.sp] ? me.sp : 'dragon';
+  const B = Array(64).fill(null);
+  for (let i = 0; i < 64; i++) {
+    const r = (i / 8) | 0, c = i % 8;
+    if ((r + c) % 2 === 1) {
+      if (r < 3) B[i] = { who: 'pet', king: false };
+      else if (r > 4) B[i] = { who: 'you', king: false };
+    }
+  }
+  let turn = 'you', sel = -1, lockPiece = -1, over = false, hints = new Set();
+  const inb = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
+
+  function pieceMoves(i, jumpsOnly) {
+    const p = B[i]; if (!p) return [];
+    const r = (i / 8) | 0, c = i % 8;
+    const ds = p.king ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+                      : (p.who === 'you' ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
+    const out = [];
+    for (const [dr, dc] of ds) {
+      const r1 = r + dr, c1 = c + dc, r2 = r + 2 * dr, c2 = c + 2 * dc;
+      if (inb(r1, c1) && B[r1 * 8 + c1] && B[r1 * 8 + c1].who !== p.who && inb(r2, c2) && !B[r2 * 8 + c2])
+        out.push({ from: i, to: r2 * 8 + c2, cap: r1 * 8 + c1 });
+      else if (!jumpsOnly && inb(r1, c1) && !B[r1 * 8 + c1])
+        out.push({ from: i, to: r1 * 8 + c1 });
+    }
+    return jumpsOnly ? out.filter(m => m.cap != null) : out;
+  }
+  function allMoves(w) {
+    const caps = [], plain = [];
+    for (let i = 0; i < 64; i++) if (B[i] && B[i].who === w)
+      for (const m of pieceMoves(i)) (m.cap != null ? caps : plain).push(m);
+    return caps.length ? caps : plain;   // captures are mandatory
+  }
+  function apply(m) {
+    const p = B[m.from]; B[m.to] = p; B[m.from] = null;
+    const capPiece = m.cap != null ? B[m.cap] : null;
+    if (m.cap != null) B[m.cap] = null;
+    const r = (m.to / 8) | 0;
+    let promoted = false;
+    if (!p.king && ((p.who === 'you' && r === 0) || (p.who === 'pet' && r === 7))) { p.king = true; promoted = true; }
+    return { captured: m.cap != null, promoted, undo: () => {
+      B[m.from] = p; B[m.to] = null;
+      if (m.cap != null) B[m.cap] = capPiece;
+      if (promoted) p.king = false;
+    } };
+  }
+  function counts() { let y = 0, pt = 0; B.forEach(q => { if (q) q.who === 'you' ? y++ : pt++; }); return { y, pt }; }
+  function info(msg) {
+    const { y, pt } = counts();
+    $('#mgInfo').textContent = msg || `${turn === 'you' ? 'Your turn' : petName(me) + ' is thinking…'} · 🟡${y}–${pt}`;
+  }
+  function finish(winner) {
+    if (over) return;
+    over = true;
+    const won = winner === 'you';
+    if (won) { if (!S.best) S.best = {}; S.best.checkers = (S.best.checkers || 0) + 1; }
+    mgEnd(won ? `You beat ${petName(me)}! 🏆` : `${petName(me)} wins!! 👑`,
+      won ? 1 : 0, won ? 25 : 5, won ? '' : 'good-game bonus');
+  }
+  function render() {
+    let html = '<div class="ckWrap"><div class="ckBoard">';
+    for (let i = 0; i < 64; i++) {
+      const r = (i / 8) | 0, c = i % 8, dark = (r + c) % 2 === 1;
+      const q = B[i];
+      let inner = '';
+      if (q) inner = q.who === 'pet'
+        ? `<span class="pc pet">${q.king ? '<b>👑</b>' : ''}<img src="${SPRITES[sp].idle}"></span>`
+        : `<span class="pc you">${q.king ? '<b>👑</b>' : ''}</span>`;
+      html += `<button class="ckSq ${dark ? 'dark' : 'light'} ${i === sel ? 'sel' : ''} ${hints.has(i) ? 'hint' : ''}"
+        data-q="${i}" ${dark ? '' : 'disabled'}>${inner}</button>`;
+    }
+    html += '</div></div>';
+    const old = mgArea.querySelector('.ckWrap');
+    if (old) old.outerHTML = html; else mgArea.insertAdjacentHTML('beforeend', html);
+  }
+  function petMove() {
+    if (over) return;
+    const moves = allMoves('pet');
+    if (!moves.length) return finish('you');
+    let best = null, bestScore = -1e9;
+    for (const m of moves) {
+      const res = apply(m);
+      const oppCaps = allMoves('you').filter(q => q.cap != null).length;
+      const chain = res.captured && !res.promoted ? pieceMoves(m.to, true).length : 0;
+      const score = (res.captured ? 12 : 0) + chain * 8 + (res.promoted ? 6 : 0)
+        + ((m.to / 8) | 0) * .3 - oppCaps * 9 + Math.random() * 2;
+      res.undo();
+      if (score > bestScore) { bestScore = score; best = m; }
+    }
+    const res = apply(best);
+    if (res.captured) { sCrunch(); buzz(20); if (Math.random() < .5) speak(`${petName(me)} takes a piece! nom.`); }
+    else sPop();
+    render(); info();
+    if (res.captured && !res.promoted && pieceMoves(best.to, true).length) {
+      setTimeout(petMove2, 550, best.to);
+      return;
+    }
+    endPetTurn();
+  }
+  function petMove2(from) {
+    if (over) return;
+    const jumps = pieceMoves(from, true);
+    if (!jumps.length) return endPetTurn();
+    const m = rnd(jumps);
+    const res = apply(m);
+    sCrunch(); buzz(20);
+    render(); info();
+    if (res.captured && !res.promoted && pieceMoves(m.to, true).length) {
+      setTimeout(petMove2, 550, m.to);
+      return;
+    }
+    endPetTurn();
+  }
+  function endPetTurn() {
+    turn = 'you';
+    const { y, pt } = counts();
+    if (!pt) return finish('you');
+    if (!y || !allMoves('you').length) return finish('pet');
+    render(); info();
+  }
+  mgArea.addEventListener('click', function onCk(e) {
+    if ($('#miniGame').hidden || !mgArea.querySelector('.ckWrap')) { mgArea.removeEventListener('click', onCk); return; }
+    const btn = e.target.closest('.ckSq');
+    if (!btn || over || turn !== 'you') return;
+    const i = +btn.dataset.q;
+    const legal = allMoves('you');
+    if (B[i] && B[i].who === 'you' && lockPiece < 0) {
+      const mine = legal.filter(m => m.from === i);
+      if (!mine.length) { sRumble(); return; }
+      sel = i; hints = new Set(mine.map(m => m.to)); render(); return;
+    }
+    if (sel >= 0 && hints.has(i)) {
+      const m = legal.find(q => q.from === sel && q.to === i) ||
+                pieceMoves(sel, true).find(q => q.to === i);
+      if (!m) return;
+      const res = apply(m);
+      if (res.captured) { sPop(); buzz(15); if (Math.random() < .4) speak(`${petName(me)} gasps!! Bold move.`); }
+      if (res.captured && !res.promoted && pieceMoves(i, true).length) {
+        sel = i; lockPiece = i; hints = new Set(pieceMoves(i, true).map(q => q.to));
+        render(); info('Jump again!'); return;
+      }
+      lockPiece = -1; sel = -1; hints = new Set();
+      turn = 'pet'; render(); info();
+      const { pt } = counts();
+      if (!pt) return finish('you');
+      setTimeout(petMove, 650);
+    }
+  });
+  render(); info();
+}
+startCheckers.mgKey = 'checkers';
+
 $('#btnGames').addEventListener('click', () => {
   if (!S.pets.length) return toast('Hatch your egg first! 🥚');
   const best = S.best || {};
@@ -2116,7 +2291,10 @@ $('#btnGames').addEventListener('click', () => {
     <button class="rowCard" data-game="bubble"><span class="preview">🫧</span>
       <span><div class="nm">Bubble Bay</div><div class="st">Pop bubbles — gold ones pay triple · best ${best.bubble || 0}</div></span></button>
     <button class="rowCard" data-game="pairs"><span class="preview">🃏</span>
-      <span><div class="nm">Pair Party</div><div class="st">Match the Mythlings from memory · best ${best.pairs || 0}</div></span></button>`);
+      <span><div class="nm">Pair Party</div><div class="st">Match the Mythlings from memory · best ${best.pairs || 0}</div></span></button>
+    <button class="rowCard" data-game="checkers"><span class="preview">♟️</span>
+      <span><div class="nm">Checkers vs ${S.pets[S.active] ? petName(S.pets[S.active]) : 'your pet'}</div>
+      <div class="st">A real board game — they play with their face · wins ${best.checkers || 0}</div></span></button>`);
 });
 
 /* ---------- pickups ---------- */
@@ -2262,7 +2440,8 @@ function tickPlayground() {
     }
   }
   if (now < frenzyUntil) spawnPickup('✨', 1, 8);
-  S.pets.forEach((p, pi) => {
+  [[S.pets[S.active], S.active]].forEach(([p, pi]) => {
+    if (!p) return;
     if (p.asleep) { p.biteTarget = null; return; }
     if (p.biteTarget == null && p.food < 70 && Math.random() < 0.15) {
       const avail = APPS.map((_, i) => i).filter(i => !bitten.has(i));
@@ -2284,18 +2463,18 @@ function tickPlayground() {
 
 let dramaTimer = 0;
 setInterval(() => {
-  S.pets.forEach(p => tickPet(p, 1, inAffinity(p)));
+  const active = S.pets[S.active];
+  if (active) tickPet(active, 1, inAffinity(active));   // sanctuary pets rest in stasis
   if (S.mode === 'phone') tickPlayground();
 
-  if (S.pets.some(p => !p.asleep && p.happy > 65) && Math.random() < 0.09)
+  if (active && !active.asleep && active.happy > 65 && Math.random() < 0.09)
     spawnPickup('✨', 2);
-  if (S.pets.some(p => p.asleep) && Math.random() < 0.05)
+  if (active && active.asleep && Math.random() < 0.05)
     spawnPickup('💭', 3);
 
-  // keepsake drops (rare, from happy pets)
-  S.pets.forEach(p => {
-    if (!p.asleep && p.happy > 55 && Math.random() < 0.0022) grantKeepsake(p.sp, true);
-  });
+  // keepsake drops (rare, from a happy pet)
+  if (active && !active.asleep && active.happy > 55 && Math.random() < 0.0022)
+    grantKeepsake(active.sp, true);
 
   // weather ambience
   if (wxState.cold) {
@@ -2329,18 +2508,6 @@ setInterval(() => {
   } else if (snowmanUp && S.snow < 0.1) {
     snowmanUp = false; renderStage();
   }
-
-  // cuddles when two happy pets wander near each other
-  const happyPets = S.pets.filter(p => !p.asleep && p.happy > 60);
-  for (let i = 0; i < happyPets.length; i++)
-    for (let j = i + 1; j < happyPets.length; j++) {
-      const a = happyPets[i], b = happyPets[j];
-      if (Math.abs(a.x - b.x) < 16 && Math.random() < 0.06) {
-        speak(rnd(CUDDLES).replace('{a}', petName(a)).replace(/\{b\}/g, petName(b)));
-        const r = stage.getBoundingClientRect();
-        particle('💞', r.width * (a.x + b.x) / 200, r.height * .55);
-      }
-    }
 
   // drama & idle chatter (weather-aware)
   if (++dramaTimer >= 18) {
