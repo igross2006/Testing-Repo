@@ -396,7 +396,7 @@
   /* checkers */
   .ckWrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 10px; }
   .ckBoard {
-    display: grid; grid-template-columns: repeat(8, 1fr);
+    display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
     width: min(96%, 440px); aspect-ratio: 1;
     border-radius: 12px; overflow: hidden; box-shadow: 0 6px 22px rgba(0,0,0,.45);
   }
@@ -412,6 +412,9 @@
   .pc.pet { background: rgba(255,255,255,.9); border: 2px solid #5a4a5a; overflow: visible; }
   .pc.pet img { width: 90%; border-radius: 50%; }
   .pc b { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); font-size: .78rem; }
+  .pcx { width: 94%; height: 94%; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .pcx img { max-width: 100%; max-height: 100%; }
+  .ckSq.chk { box-shadow: inset 0 0 0 100px rgba(232,90,80,.45); }
 
   /* ---------- hatch cinematic ---------- */
   #hatchFx { position:absolute; inset:0; z-index:10; display:none; align-items:center;
@@ -1816,6 +1819,7 @@ $('#btnSleep').addEventListener('click', () => {
 $('#btnSound').addEventListener('click', () => {
   S.sound = !S.sound; renderHUD(); save();
   if (S.sound) sChirp();
+  updateMusic();
 });
 
 /* ---------- phone playground toggle ---------- */
@@ -1936,7 +1940,7 @@ $('#modalBox').addEventListener('click', e => {
   const gm = e.target.closest('[data-game]');
   if (gm) {
     $('#modal').classList.remove('open');
-    ({ snack: startSnack, bubble: startBubble, pairs: startPairs, checkers: startCheckers })[gm.dataset.game]();
+    ({ snack: startSnack, bubble: startBubble, pairs: startPairs, checkers: startCheckers, chess: startChess })[gm.dataset.game]();
     return;
   }
 });
@@ -2282,6 +2286,263 @@ function startCheckers() {
 }
 startCheckers.mgKey = 'checkers';
 
+/* ---- 5. Chess: the full royal game against your pet ---- */
+function startChess() {
+  mgOpen('♛ Chess', startChess);
+  const me = S.pets[S.active];
+  const B = Array(64).fill(null);
+  const back = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
+  for (let c = 0; c < 8; c++) {
+    B[c] = { t: back[c], w: 'pet', moved: false };
+    B[8 + c] = { t: 'p', w: 'pet', moved: false };
+    B[48 + c] = { t: 'p', w: 'you', moved: false };
+    B[56 + c] = { t: back[c], w: 'you', moved: false };
+  }
+  let turn = 'you', sel = -1, hints = new Map(), over = false, ep = -1;
+  const R = i => i >> 3, C = i => i & 7, inb = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
+  const fwd = w => w === 'you' ? -1 : 1;
+  const foe = w => w === 'you' ? 'pet' : 'you';
+  const KN = [[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]];
+
+  function attacked(sq, by) {
+    if (sq < 0) return false;
+    const r = R(sq), c = C(sq);
+    const pr = r - fwd(by);
+    for (const dc of [-1, 1]) if (inb(pr, c + dc)) {
+      const q = B[pr * 8 + c + dc];
+      if (q && q.w === by && q.t === 'p') return true;
+    }
+    for (const [dr, dc] of KN) if (inb(r + dr, c + dc)) {
+      const q = B[(r + dr) * 8 + c + dc];
+      if (q && q.w === by && q.t === 'n') return true;
+    }
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if (dr || dc) {
+      if (inb(r + dr, c + dc)) {
+        const q = B[(r + dr) * 8 + c + dc];
+        if (q && q.w === by && q.t === 'k') return true;
+      }
+    }
+    for (const [dirs, ts] of [
+      [[[1,0],[-1,0],[0,1],[0,-1]], 'rq'],
+      [[[1,1],[1,-1],[-1,1],[-1,-1]], 'bq']
+    ]) {
+      for (const [dr, dc] of dirs) {
+        let rr = r + dr, cc = c + dc;
+        while (inb(rr, cc)) {
+          const q = B[rr * 8 + cc];
+          if (q) { if (q.w === by && ts.includes(q.t)) return true; break; }
+          rr += dr; cc += dc;
+        }
+      }
+    }
+    return false;
+  }
+  const kingSq = w => { for (let i = 0; i < 64; i++) if (B[i] && B[i].w === w && B[i].t === 'k') return i; return -1; };
+  const inCheck = w => attacked(kingSq(w), foe(w));
+
+  function pseudo(i) {
+    const p = B[i], r = R(i), c = C(i), out = [];
+    const push = (to, extra) => out.push(Object.assign({ from: i, to }, extra));
+    if (p.t === 'p') {
+      const d = fwd(p.w), r1 = r + d;
+      if (inb(r1, c) && !B[r1 * 8 + c]) {
+        push(r1 * 8 + c);
+        const r2 = r + 2 * d;
+        if (!p.moved && inb(r2, c) && !B[r2 * 8 + c]) push(r2 * 8 + c, { dbl: true });
+      }
+      for (const dc of [-1, 1]) if (inb(r1, c + dc)) {
+        const t = r1 * 8 + c + dc, q = B[t];
+        if (q && q.w !== p.w) push(t);
+        else if (!q && t === ep) push(t, { epCap: r * 8 + c + dc });
+      }
+    } else if (p.t === 'n') {
+      for (const [dr, dc] of KN) if (inb(r + dr, c + dc)) {
+        const t = (r + dr) * 8 + c + dc;
+        if (!B[t] || B[t].w !== p.w) push(t);
+      }
+    } else if (p.t === 'k') {
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if (dr || dc) {
+        if (inb(r + dr, c + dc)) {
+          const t = (r + dr) * 8 + c + dc;
+          if (!B[t] || B[t].w !== p.w) push(t);
+        }
+      }
+      if (!p.moved && !inCheck(p.w)) {
+        const row = r * 8, en = foe(p.w);
+        const rk = B[row + 7];
+        if (rk && rk.t === 'r' && rk.w === p.w && !rk.moved && !B[row + 5] && !B[row + 6]
+            && !attacked(row + 5, en) && !attacked(row + 6, en))
+          push(row + 6, { castle: { rookFrom: row + 7, rookTo: row + 5 } });
+        const rq = B[row];
+        if (rq && rq.t === 'r' && rq.w === p.w && !rq.moved && !B[row + 1] && !B[row + 2] && !B[row + 3]
+            && !attacked(row + 3, en) && !attacked(row + 2, en))
+          push(row + 2, { castle: { rookFrom: row, rookTo: row + 3 } });
+      }
+    } else {
+      const dirs = p.t === 'r' ? [[1,0],[-1,0],[0,1],[0,-1]]
+                 : p.t === 'b' ? [[1,1],[1,-1],[-1,1],[-1,-1]]
+                 : [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+      for (const [dr, dc] of dirs) {
+        let rr = r + dr, cc = c + dc;
+        while (inb(rr, cc)) {
+          const t = rr * 8 + cc;
+          if (!B[t]) push(t);
+          else { if (B[t].w !== p.w) push(t); break; }
+          rr += dr; cc += dc;
+        }
+      }
+    }
+    return out;
+  }
+
+  function apply(m) {
+    const p = B[m.from];
+    const meta = {
+      p, movedBefore: p.moved, epBefore: ep,
+      cap: m.epCap != null ? B[m.epCap] : B[m.to],
+      capSq: m.epCap != null ? m.epCap : m.to,
+      promoted: false, castle: m.castle,
+      rookMovedBefore: m.castle ? B[m.castle.rookFrom].moved : false
+    };
+    B[m.to] = p; B[m.from] = null; p.moved = true;
+    if (m.epCap != null) B[m.epCap] = null;
+    ep = m.dbl ? (m.from + m.to) / 2 : -1;
+    if (m.castle) {
+      const rk = B[m.castle.rookFrom];
+      B[m.castle.rookTo] = rk; B[m.castle.rookFrom] = null; rk.moved = true;
+    }
+    if (p.t === 'p' && (R(m.to) === 0 || R(m.to) === 7)) { p.t = 'q'; meta.promoted = true; }
+    return meta;
+  }
+  function undoM(m, meta) {
+    const p = meta.p;
+    B[m.from] = p; B[m.to] = null;
+    p.moved = meta.movedBefore;
+    if (meta.promoted) p.t = 'p';
+    if (meta.cap) B[meta.capSq] = meta.cap;
+    if (meta.castle) {
+      const rk = B[meta.castle.rookTo];
+      B[meta.castle.rookFrom] = rk; B[meta.castle.rookTo] = null;
+      rk.moved = meta.rookMovedBefore;
+    }
+    ep = meta.epBefore;
+  }
+  function legal(w) {
+    const out = [];
+    for (let i = 0; i < 64; i++) if (B[i] && B[i].w === w)
+      for (const m of pseudo(i)) {
+        const meta = apply(m);
+        if (!inCheck(w)) out.push(m);
+        undoM(m, meta);
+      }
+    return out;
+  }
+
+  const VAL = { p: 1, n: 3, b: 3.2, r: 5, q: 9, k: 0 };
+  function evalB() {   // positive = good for the pet
+    let s = 0;
+    for (let i = 0; i < 64; i++) {
+      const q = B[i]; if (!q) continue;
+      let v = VAL[q.t];
+      const r = R(i), c = C(i);
+      if (q.t === 'p') v += (q.w === 'pet' ? r : 7 - r) * 0.03;
+      if (q.t === 'n' || q.t === 'b') v += (3.5 - Math.max(Math.abs(3.5 - r), Math.abs(3.5 - c))) * 0.04;
+      s += q.w === 'pet' ? v : -v;
+    }
+    return s;
+  }
+
+  function finish(result) {
+    if (over) return;
+    over = true;
+    if (result === 'you') { if (!S.best) S.best = {}; S.best.chess = (S.best.chess || 0) + 1; }
+    mgEnd(result === 'you' ? `Checkmate — you beat ${petName(me)}! 🏆`
+        : result === 'pet' ? `Checkmate — ${petName(me)} wins!! 👑`
+        : 'A draw! Well played, both of you.',
+      result === 'you' ? 1 : 0, result === 'you' ? 30 : result === 'draw' ? 10 : 5, '');
+  }
+  function info(msg) {
+    $('#mgInfo').textContent = msg || (turn === 'you' ? 'Your turn' : petName(me) + ' is thinking…');
+  }
+  function render() {
+    const youChk = inCheck('you'), petChk = inCheck('pet');
+    let html = '<div class="ckWrap"><div class="ckBoard">';
+    for (let i = 0; i < 64; i++) {
+      const dark = ((R(i) + C(i)) % 2) === 1;
+      const q = B[i];
+      const chk = q && q.t === 'k' && ((q.w === 'you' && youChk) || (q.w === 'pet' && petChk));
+      let inner = '';
+      if (q) inner = `<span class="pcx"><img src="assets/chess/${q.w}-${q.t}.webp"></span>`;
+      html += `<button class="ckSq ${dark ? 'dark' : 'light'} ${i === sel ? 'sel' : ''} ${hints.has(i) ? 'hint' : ''} ${chk ? 'chk' : ''}"
+        data-q="${i}">${inner}</button>`;
+    }
+    html += '</div></div>';
+    const old = mgArea.querySelector('.ckWrap');
+    if (old) old.outerHTML = html; else mgArea.insertAdjacentHTML('beforeend', html);
+  }
+  function petMove() {
+    if (over) return;
+    const moves = legal('pet');
+    if (!moves.length) return finish(inCheck('pet') ? 'you' : 'draw');
+    let best = null, bestScore = -1e9;
+    for (const m of moves) {
+      const meta = apply(m);
+      let score;
+      const replies = legal('you');
+      if (!replies.length) score = inCheck('you') ? 999 : 0;
+      else {
+        let worst = 1e9;
+        for (const rm of replies) {
+          const rmeta = apply(rm);
+          const e = evalB();
+          undoM(rm, rmeta);
+          if (e < worst) worst = e;
+        }
+        score = worst;
+      }
+      undoM(m, meta);
+      score += Math.random() * 0.05;
+      if (score > bestScore) { bestScore = score; best = m; }
+    }
+    const meta = apply(best);
+    if (meta.cap) { sCrunch(); buzz(20); if (Math.random() < .4) speak(`${petName(me)} captures! nom.`); }
+    else sPop();
+    turn = 'you'; sel = -1; hints = new Map();
+    const yours = legal('you');
+    render();
+    if (!yours.length) return finish(inCheck('you') ? 'pet' : 'draw');
+    info(inCheck('you') ? '⚠️ Check!' : '');
+  }
+  mgArea.addEventListener('click', function onCx(e) {
+    if ($('#miniGame').hidden || !mgArea.querySelector('.ckWrap')) { mgArea.removeEventListener('click', onCx); return; }
+    const btn = e.target.closest('.ckSq');
+    if (!btn || over || turn !== 'you') return;
+    const i = +btn.dataset.q;
+    if (hints.has(i)) {
+      const m = hints.get(i);
+      const meta = apply(m);
+      if (meta.cap) { sPop(); buzz(15); if (Math.random() < .35) speak(`${petName(me)} gasps!!`); }
+      else sPop();
+      if (meta.promoted) speak('Promotion!! A new queen! 👑');
+      sel = -1; hints = new Map();
+      turn = 'pet'; render(); info();
+      const petMoves = legal('pet');
+      if (!petMoves.length) return finish(inCheck('pet') ? 'you' : 'draw');
+      setTimeout(petMove, 700);
+      return;
+    }
+    if (B[i] && B[i].w === 'you') {
+      const mine = legal('you').filter(m => m.from === i);
+      if (!mine.length) { sRumble(); return; }
+      sel = i; hints = new Map(mine.map(m => [m.to, m]));
+      render(); return;
+    }
+    sel = -1; hints = new Map(); render();
+  });
+  render(); info();
+}
+startChess.mgKey = 'chess';
+
 $('#btnGames').addEventListener('click', () => {
   if (!S.pets.length) return toast('Hatch your egg first! 🥚');
   const best = S.best || {};
@@ -2294,7 +2555,10 @@ $('#btnGames').addEventListener('click', () => {
       <span><div class="nm">Pair Party</div><div class="st">Match the Mythlings from memory · best ${best.pairs || 0}</div></span></button>
     <button class="rowCard" data-game="checkers"><span class="preview">♟️</span>
       <span><div class="nm">Checkers vs ${S.pets[S.active] ? petName(S.pets[S.active]) : 'your pet'}</div>
-      <div class="st">A real board game — they play with their face · wins ${best.checkers || 0}</div></span></button>`);
+      <div class="st">A real board game — they play with their face · wins ${best.checkers || 0}</div></span></button>
+    <button class="rowCard" data-game="chess"><span class="preview">♛</span>
+      <span><div class="nm">Chess vs ${S.pets[S.active] ? petName(S.pets[S.active]) : 'your pet'}</div>
+      <div class="st">The royal game — full rules, Mythling pieces · wins ${best.chess || 0}</div></span></button>`);
 });
 
 /* ---------- pickups ---------- */
@@ -2394,7 +2658,25 @@ function initMotion() {
     else attach();
   } catch (e) {}
 }
-addEventListener('pointerdown', () => { ac(); initMotion(); }, { once: true });
+addEventListener('pointerdown', () => { ac(); initMotion(); initMusic(); }, { once: true });
+
+/* ====================== music ====================== */
+
+const MUSIC_TRACKS = { default: 'assets/music/meadow.mp3' };   // per-scene tracks slot in here
+let musicEl = null;
+function initMusic() {
+  if (musicEl) return;
+  musicEl = new Audio(MUSIC_TRACKS.default);
+  musicEl.loop = true;
+  musicEl.volume = 0.45;
+  updateMusic();
+}
+function updateMusic() {
+  if (!musicEl) return;
+  if (S.sound && !document.hidden) musicEl.play().catch(() => {});
+  else musicEl.pause();
+}
+document.addEventListener('visibilitychange', updateMusic);
 
 /* ====================== playground brain ====================== */
 
