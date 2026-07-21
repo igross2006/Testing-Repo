@@ -74,9 +74,14 @@
   #stage.env-meadow.wx-storm::before {
     content: ''; position: absolute; inset: 0; background: rgba(30,34,52,.32); pointer-events: none;
   }
-  #stage.env-cove.wx-grey    { background: linear-gradient(180deg,#8fa4b0 0%,#b4c4cc 38%,#ccd7dc 50%,#7fa8b5 50%,#93b8c2 62%,#d8cba8 62%,#c9bc98 100%); }
-  #stage.env-cove.wx-storm   { background: linear-gradient(180deg,#4f5e6e 0%,#71818f 38%,#87979f 50%,#4f7382 50%,#628693 62%,#a89c80 62%,#998d73 100%); }
-  #stage.env-cove.wx-snowy   { background: linear-gradient(180deg,#b3bfd0 0%,#d8dfe9 38%,#e9edf3 50%,#a5c4cf 50%,#bcd6de 62%,#e9e4d5 62%,#ddd8c9 100%); }
+  /* the cove keeps its painted beach in all weather — just tinted by an overlay */
+  #stage.env-cove.wx-grey, #stage.env-cove.wx-storm, #stage.env-cove.wx-snowy {
+    background: url(assets/bg/cove-sunny.webp) center / cover no-repeat,
+                linear-gradient(180deg,#6ecbe8 0%,#aee6f2 38%,#d8f4f6 50%,#7fd8e8 50%,#a9e6ef 62%,#f6e3b0 62%,#eed49a 100%);
+  }
+  #stage.env-cove.wx-grey::before  { content:''; position:absolute; inset:0; background:rgba(64,74,92,.30); pointer-events:none; }
+  #stage.env-cove.wx-storm::before { content:''; position:absolute; inset:0; background:rgba(28,32,50,.44); pointer-events:none; }
+  #stage.env-cove.wx-snowy::before { content:''; position:absolute; inset:0; background:rgba(214,226,238,.26); pointer-events:none; }
   /* the hollow keeps its painted scene in all weather — just tinted by an overlay */
   #stage.env-hollow.wx-grey, #stage.env-hollow.wx-storm, #stage.env-hollow.wx-snowy {
     background: url(assets/bg/hollow.webp) center / cover no-repeat,
@@ -1360,22 +1365,11 @@ function scenery(env) {
     [[62,'18%',0],[72,'70%',2],[58,'44%',4],[80,'30%',1],[66,'85%',3]].forEach(([t, l, d]) =>
       { out += `<div class="deco firefly" style="top:${t}%; left:${l}; animation-duration:${6 + d}s; animation-delay:${d}s"></div>`; });
   } else if (env === 'cove') {
-    if (!gloom && !snowy) {
-      // painted beach — living touches only
-      out = `<div class="deco cloud" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.75"></div>`;
-      out += pos(`<span class="bobber" style="display:inline-block">${sailboat()}</span>`, 'top:44%; left:66%;');
+    // painted beach in all weather — living touches only
+    out = `<div class="deco cloud ${cloudMod}" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.75"></div>`;
+    out += pos(`<span class="bobber" style="display:inline-block">${sailboat()}</span>`, 'top:44%; left:66%;');
+    if (!gloom && !snowy)
       out += pos(`<span class="crab" style="display:inline-block">${crabSVG()}</span>`, 'bottom:1.5%; left:4%;');
-    } else {
-      // procedural weather scene for the cove until painted variants exist
-      const waveCols = ['#9bb5bd','#b3c8ce','#ccd9dc'];
-      out = `
-        <div class="deco cloud ${cloudMod}" style="top:8%; animation-duration:70s; animation-delay:-20s; opacity:.8"></div>
-        <div class="deco wave" style="--wc:${waveCols[0]}; top:47.5%; animation-duration:${wxState.cond === 'storm' ? 2.5 : 5}s; opacity:.9"></div>
-        <div class="deco wave" style="--wc:${waveCols[1]}; top:52%; animation-duration:${wxState.cond === 'storm' ? 3.5 : 6.5}s; animation-delay:-2s; opacity:.8"></div>
-        <div class="deco wave" style="--wc:${waveCols[2]}; top:57%; animation-duration:8s; animation-delay:-4s; opacity:.6"></div>`;
-      out += pos(palmTree(), 'bottom:26%; left:-3%;');
-      out += pos(palmTree(), 'bottom:28%; right:-5%; transform:scaleX(-1);');
-    }
   } else if (env === 'cavern') {
     // painted cavern — just twinkles for life
     for (let i = 0; i < 6; i++)
