@@ -1974,10 +1974,35 @@ const mgInt = (fn, ms) => { const i = setInterval(fn, ms); MG.ints.push(i); retu
 function mgStop() { MG.ints.forEach(clearInterval); MG.ints = []; }
 function mgOpen(title, fn) {
   MG.current = fn;
+  MG.boardToken = {};   // invalidates board-game click listeners from earlier games
   $('#mgTitle').textContent = title;
   $('#mgInfo').textContent = '';
   mgArea.innerHTML = '';
   $('#miniGame').hidden = false;
+}
+
+/* slide a board piece from one square to another, then run done() */
+function slidePiece(fromIdx, toIdx, done, ms = 260) {
+  done = done || (() => {});
+  const from = mgArea.querySelector(`.ckSq[data-q="${fromIdx}"]`);
+  const to = mgArea.querySelector(`.ckSq[data-q="${toIdx}"]`);
+  const piece = from && from.querySelector('.pcx, .pc');
+  if (!piece || !to) return done();
+  const ar = mgArea.getBoundingClientRect();
+  const fr = piece.getBoundingClientRect(), tr = to.getBoundingClientRect();
+  const ghost = piece.cloneNode(true);
+  ghost.style.cssText = `position:absolute; left:${fr.left - ar.left}px; top:${fr.top - ar.top}px;
+    width:${fr.width}px; height:${fr.height}px; z-index:6; pointer-events:none; margin:0;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform ${ms}ms cubic-bezier(.3,.7,.4,1); will-change: transform;`;
+  mgArea.appendChild(ghost);
+  piece.style.visibility = 'hidden';
+  const dx = (tr.left + tr.width / 2) - (fr.left + fr.width / 2);
+  const dy = (tr.top + tr.height / 2) - (fr.top + fr.height / 2);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    ghost.style.transform = `translate(${dx}px, ${dy}px)`;
+  }));
+  setTimeout(() => { ghost.remove(); done(); }, ms + 50);
 }
 function mgClose() { mgStop(); $('#miniGame').hidden = true; }
 $('#mgQuit').addEventListener('click', mgClose);
@@ -2161,6 +2186,7 @@ function startCheckers() {
     }
   }
   let turn = 'you', sel = -1, lockPiece = -1, over = false, hints = new Set();
+  const myToken = MG.boardToken;
   const inb = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
 
   function pieceMoves(i, jumpsOnly) {
@@ -2240,29 +2266,35 @@ function startCheckers() {
       res.undo();
       if (score > bestScore) { bestScore = score; best = m; }
     }
-    const res = apply(best);
-    if (res.captured) { sCrunch(); buzz(20); if (Math.random() < .5) speak(`${petName(me)} takes a piece! nom.`); }
-    else sPop();
-    render(); info();
-    if (res.captured && !res.promoted && pieceMoves(best.to, true).length) {
-      setTimeout(petMove2, 550, best.to);
-      return;
-    }
-    endPetTurn();
+    slidePiece(best.from, best.to, () => {
+      if (MG.boardToken !== myToken || over) return;
+      const res = apply(best);
+      if (res.captured) { sCrunch(); buzz(20); if (Math.random() < .5) speak(`${petName(me)} takes a piece! nom.`); }
+      else sPop();
+      render(); info();
+      if (res.captured && !res.promoted && pieceMoves(best.to, true).length) {
+        setTimeout(petMove2, 350, best.to);
+        return;
+      }
+      endPetTurn();
+    });
   }
   function petMove2(from) {
     if (over) return;
     const jumps = pieceMoves(from, true);
     if (!jumps.length) return endPetTurn();
     const m = rnd(jumps);
-    const res = apply(m);
-    sCrunch(); buzz(20);
-    render(); info();
-    if (res.captured && !res.promoted && pieceMoves(m.to, true).length) {
-      setTimeout(petMove2, 550, m.to);
-      return;
-    }
-    endPetTurn();
+    slidePiece(m.from, m.to, () => {
+      if (MG.boardToken !== myToken || over) return;
+      const res = apply(m);
+      sCrunch(); buzz(20);
+      render(); info();
+      if (res.captured && !res.promoted && pieceMoves(m.to, true).length) {
+        setTimeout(petMove2, 350, m.to);
+        return;
+      }
+      endPetTurn();
+    });
   }
   function endPetTurn() {
     turn = 'you';
@@ -2272,7 +2304,9 @@ function startCheckers() {
     render(); info();
   }
   mgArea.addEventListener('click', function onCk(e) {
-    if ($('#miniGame').hidden || !mgArea.querySelector('.ckWrap')) { mgArea.removeEventListener('click', onCk); return; }
+    if (MG.boardToken !== myToken || $('#miniGame').hidden || !mgArea.querySelector('.ckWrap')) {
+      mgArea.removeEventListener('click', onCk); return;
+    }
     const btn = e.target.closest('.ckSq');
     if (!btn || over || turn !== 'you') return;
     const i = +btn.dataset.q;
@@ -2286,17 +2320,22 @@ function startCheckers() {
       const m = legal.find(q => q.from === sel && q.to === i) ||
                 pieceMoves(sel, true).find(q => q.to === i);
       if (!m) return;
-      const res = apply(m);
-      if (res.captured) { sPop(); buzz(15); if (Math.random() < .4) speak(`${petName(me)} gasps!! Bold move.`); }
-      if (res.captured && !res.promoted && pieceMoves(i, true).length) {
-        sel = i; lockPiece = i; hints = new Set(pieceMoves(i, true).map(q => q.to));
-        render(); info('Jump again!'); return;
-      }
-      lockPiece = -1; sel = -1; hints = new Set();
-      turn = 'pet'; render(); info();
-      const { pt } = counts();
-      if (!pt) return finish('you');
-      setTimeout(petMove, 650);
+      turn = 'anim'; sel = -1; hints = new Set(); render();
+      slidePiece(m.from, m.to, () => {
+        if (MG.boardToken !== myToken || over) return;
+        const res = apply(m);
+        if (res.captured) { sPop(); buzz(15); if (Math.random() < .4) speak(`${petName(me)} gasps!! Bold move.`); }
+        if (res.captured && !res.promoted && pieceMoves(m.to, true).length) {
+          turn = 'you'; sel = m.to; lockPiece = m.to;
+          hints = new Set(pieceMoves(m.to, true).map(q => q.to));
+          render(); info('Jump again!'); return;
+        }
+        lockPiece = -1; sel = -1; hints = new Set();
+        turn = 'pet'; render(); info();
+        const { pt } = counts();
+        if (!pt) return finish('you');
+        setTimeout(petMove, 450);
+      });
     }
   });
   render(); info();
@@ -2316,6 +2355,7 @@ function startChess() {
     B[56 + c] = { t: back[c], w: 'you', moved: false };
   }
   let turn = 'you', sel = -1, hints = new Map(), over = false, ep = -1;
+  const myToken = MG.boardToken;
   const R = i => i >> 3, C = i => i & 7, inb = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
   const fwd = w => w === 'you' ? -1 : 1;
   const foe = w => w === 'you' ? 'pet' : 'you';
@@ -2521,31 +2561,42 @@ function startChess() {
       score += Math.random() * 0.05;
       if (score > bestScore) { bestScore = score; best = m; }
     }
-    const meta = apply(best);
-    if (meta.cap) { sCrunch(); buzz(20); if (Math.random() < .4) speak(`${petName(me)} captures! nom.`); }
-    else sPop();
-    turn = 'you'; sel = -1; hints = new Map();
-    const yours = legal('you');
-    render();
-    if (!yours.length) return finish(inCheck('you') ? 'pet' : 'draw');
-    info(inCheck('you') ? '⚠️ Check!' : '');
+    if (best.castle) slidePiece(best.castle.rookFrom, best.castle.rookTo);
+    slidePiece(best.from, best.to, () => {
+      if (MG.boardToken !== myToken || over) return;
+      const meta = apply(best);
+      if (meta.cap) { sCrunch(); buzz(20); if (Math.random() < .4) speak(`${petName(me)} captures! nom.`); }
+      else sPop();
+      turn = 'you'; sel = -1; hints = new Map();
+      const yours = legal('you');
+      render();
+      if (!yours.length) return finish(inCheck('you') ? 'pet' : 'draw');
+      info(inCheck('you') ? '⚠️ Check!' : '');
+    });
   }
   mgArea.addEventListener('click', function onCx(e) {
-    if ($('#miniGame').hidden || !mgArea.querySelector('.ckWrap')) { mgArea.removeEventListener('click', onCx); return; }
+    if (MG.boardToken !== myToken || $('#miniGame').hidden || !mgArea.querySelector('.ckWrap')) {
+      mgArea.removeEventListener('click', onCx); return;
+    }
     const btn = e.target.closest('.ckSq');
     if (!btn || over || turn !== 'you') return;
     const i = +btn.dataset.q;
     if (hints.has(i)) {
       const m = hints.get(i);
-      const meta = apply(m);
-      if (meta.cap) { sPop(); buzz(15); if (Math.random() < .35) speak(`${petName(me)} gasps!!`); }
-      else sPop();
-      if (meta.promoted) speak('Promotion!! A new queen! 👑');
       sel = -1; hints = new Map();
       turn = 'pet'; render(); info();
-      const petMoves = legal('pet');
-      if (!petMoves.length) return finish(inCheck('pet') ? 'you' : 'draw');
-      setTimeout(petMove, 700);
+      if (m.castle) slidePiece(m.castle.rookFrom, m.castle.rookTo);
+      slidePiece(m.from, m.to, () => {
+        if (MG.boardToken !== myToken || over) return;
+        const meta = apply(m);
+        if (meta.cap) { sPop(); buzz(15); if (Math.random() < .35) speak(`${petName(me)} gasps!!`); }
+        else sPop();
+        if (meta.promoted) speak('Promotion!! A new queen! 👑');
+        render();
+        const petMoves = legal('pet');
+        if (!petMoves.length) return finish(inCheck('pet') ? 'you' : 'draw');
+        setTimeout(petMove, 450);
+      });
       return;
     }
     if (B[i] && B[i].w === 'you') {
