@@ -77,9 +77,14 @@
   #stage.env-cove.wx-grey    { background: linear-gradient(180deg,#8fa4b0 0%,#b4c4cc 38%,#ccd7dc 50%,#7fa8b5 50%,#93b8c2 62%,#d8cba8 62%,#c9bc98 100%); }
   #stage.env-cove.wx-storm   { background: linear-gradient(180deg,#4f5e6e 0%,#71818f 38%,#87979f 50%,#4f7382 50%,#628693 62%,#a89c80 62%,#998d73 100%); }
   #stage.env-cove.wx-snowy   { background: linear-gradient(180deg,#b3bfd0 0%,#d8dfe9 38%,#e9edf3 50%,#a5c4cf 50%,#bcd6de 62%,#e9e4d5 62%,#ddd8c9 100%); }
-  #stage.env-hollow.wx-grey  { background: linear-gradient(180deg,#3a4442 0%,#525f52 46%,#68765f 56%,#46543f 56%,#374233 100%); }
-  #stage.env-hollow.wx-storm { background: linear-gradient(180deg,#2c3434 0%,#3f4a41 46%,#4f5a4a 56%,#374233 56%,#2b3328 100%); }
-  #stage.env-hollow.wx-snowy { background: linear-gradient(180deg,#8fa0a4 0%,#b8c5c4 46%,#d5dcd8 56%,#dfe6e2 56%,#c8d2cc 100%); }
+  /* the hollow keeps its painted scene in all weather — just tinted by an overlay */
+  #stage.env-hollow.wx-grey, #stage.env-hollow.wx-storm, #stage.env-hollow.wx-snowy {
+    background: url(assets/bg/hollow.webp) center / cover no-repeat,
+                linear-gradient(180deg,#2a3a2c 0%,#41573f 46%,#5a7350 56%,#3a4d33 56%,#2c3b27 100%);
+  }
+  #stage.env-hollow.wx-grey::before  { content:''; position:absolute; inset:0; background:rgba(64,74,92,.30); pointer-events:none; }
+  #stage.env-hollow.wx-storm::before { content:''; position:absolute; inset:0; background:rgba(28,32,50,.44); pointer-events:none; }
+  #stage.env-hollow.wx-snowy::before { content:''; position:absolute; inset:0; background:rgba(214,226,238,.26); pointer-events:none; }
   .greyCloud { filter: brightness(.72) saturate(.5); }
   .darkCloud { filter: brightness(.5) saturate(.4); }
   .paleCloud { filter: brightness(.95) saturate(.3); opacity:.9; }
