@@ -55,7 +55,8 @@
                                   linear-gradient(180deg,#6ecbe8 0%,#aee6f2 38%,#d8f4f6 50%,#7fd8e8 50%,#a9e6ef 62%,#f6e3b0 62%,#eed49a 100%); }
   #stage.env-cavern { background: url(assets/bg/cavern.webp) center / cover no-repeat,
                                   linear-gradient(180deg,#1c1433 0%,#2e2050 44%,#3d2a63 56%,#241a3e 56%,#180f2c 100%); }
-  #stage.env-hollow { background: linear-gradient(180deg,#2a3a2c 0%,#41573f 46%,#5a7350 56%,#3a4d33 56%,#2c3b27 100%); }
+  #stage.env-hollow { background: url(assets/bg/hollow.webp) center / cover no-repeat,
+                                  linear-gradient(180deg,#2a3a2c 0%,#41573f 46%,#5a7350 56%,#3a4d33 56%,#2c3b27 100%); }
   #stage.env-ember  { background: url(assets/bg/ember.webp) center / cover no-repeat,
                                   linear-gradient(180deg,#3a2030 0%,#5c2e3a 42%,#8a4a44 56%,#4d3238 56%,#3a252c 100%); }
   #stage.night::after {
@@ -1376,11 +1377,7 @@ function scenery(env) {
       out += `<div class="deco star" style="top:${8 + Math.random() * 40}%; left:${Math.random() * 94}%;
               width:2px; height:2px; animation-delay:${Math.random() * 3}s"></div>`;
   } else if (env === 'hollow') {
-    out += pos(bigShroom(1.2, '#e8734f'), 'bottom:30%; left:-2%;');
-    out += pos(bigShroom(.8, '#b48ae8'), 'bottom:34%; left:20%; opacity:.9;');
-    out += pos(bigShroom(1, '#f2a25c'), 'bottom:31%; right:0%;');
-    [10, 30, 58, 82].forEach((x, i) =>
-      { out += pos(`<span class="shroomGlow" style="display:inline-block">${glowShroom()}</span>`, `bottom:${4 + (i % 2) * 11}%; left:${x}%;`); });
+    // painted hollow — drifting spores and fireflies for life
     for (let i = 0; i < 7; i++)
       out += `<div class="deco spore" style="bottom:${10 + Math.random() * 30}%; left:${Math.random() * 94}%;
               animation-duration:${7 + Math.random() * 6}s; animation-delay:${Math.random() * 5}s"></div>`;

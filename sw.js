@@ -1,7 +1,8 @@
-const CACHE = 'mythlings-v30';
+const CACHE = 'mythlings-v31';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg',
   'assets/bg/meadow-sunny.webp', 'assets/bg/meadow-rainy.webp', 'assets/bg/meadow-snowy.webp',
-  'assets/bg/cove-sunny.webp', 'assets/bg/cavern.webp', 'assets/bg/ember.webp', 'assets/bg/grove.webp'];
+  'assets/bg/cove-sunny.webp', 'assets/bg/cavern.webp', 'assets/bg/ember.webp', 'assets/bg/grove.webp',
+  'assets/bg/hollow.webp'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
